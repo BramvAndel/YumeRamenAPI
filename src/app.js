@@ -8,11 +8,15 @@ const authRoutes = require('./routes/auth');
 const swaggerUi = require('swagger-ui-express');
 const swaggerJsdoc = require('swagger-jsdoc');
 const logger = require('./utils/logger');
+const { apiLimiter } = require('./middleware/rateLimiter');
 
 const app = express();
 app.use(express.json());
     
 const prefix = `/api/${process.env.VERSION}`;
+
+// Apply global rate limiter to all API routes
+app.use(prefix, apiLimiter);
 
 app.use(
   cors({
