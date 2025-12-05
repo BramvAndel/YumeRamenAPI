@@ -44,6 +44,8 @@ const { authLimiter } = require('../middleware/rateLimiter');
  *                   type: string
  *                 refreshToken:
  *                   type: string
+ *                 userId:
+ *                   type: integer
  *       400:
  *         description: Missing email or password
  *       401:
