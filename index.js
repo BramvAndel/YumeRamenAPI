@@ -13,3 +13,8 @@ connectDb();
 app.listen(PORT, () => {
   logger.log(`Server is running on port ${PORT}`);
 });
+
+
+// TODO: betalingen confirm backend implementeren
+// TODO: rate limiting implementeren
+// TODO: input validation toevoegen (bijv. met Joi of express-validator)

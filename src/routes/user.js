@@ -1,5 +1,7 @@
 const express = require('express');
 const router = express.Router();
+const authenticateToken = require('../middleware/authMiddleware');
+const ensureOwnerOrAdmin = require('../middleware/ownerMiddleware');
 
 const userController = require('../controllers/userController');
 
@@ -29,6 +31,10 @@ const userController = require('../controllers/userController');
  *         address:
  *           type: string
  *           description: The user address
+ *         role:
+ *           type: string
+ *           enum: [user, admin]
+ *           description: The user role
  *         created_at:
  *           type: string
  *           format: date-time
@@ -69,7 +75,7 @@ const userController = require('../controllers/userController');
  *       500:
  *         description: Internal Server Error
  */
-router.get('/', userController.getAllUsers);
+router.get('/', authenticateToken, userController.getAllUsers);
 
 /**
  * @swagger
@@ -96,7 +102,7 @@ router.get('/', userController.getAllUsers);
  *       500:
  *         description: Internal Server Error
  */
-router.get('/:id', userController.getUserById);
+router.get('/:id', authenticateToken, userController.getUserById);
 
 /**
  * @swagger
@@ -123,6 +129,9 @@ router.get('/:id', userController.getUserById);
  *                 type: string
  *               address:
  *                 type: string
+ *               role:
+ *                 type: string
+ *                 enum: [user, admin]
  *     responses:
  *       201:
  *         description: The user was successfully created
@@ -158,7 +167,7 @@ router.post('/', userController.createUser);
  *       500:
  *         description: Internal Server Error
  */
-router.delete('/:id', userController.deleteUser);
+router.delete('/:id', authenticateToken, ensureOwnerOrAdmin, userController.deleteUser);
 
 /**
  * @swagger
@@ -188,6 +197,9 @@ router.delete('/:id', userController.deleteUser);
  *                 type: string
  *               address:
  *                 type: string
+ *               role:
+ *                 type: string
+ *                 enum: [user, admin]
  *     responses:
  *       200:
  *         description: The user was updated
@@ -196,6 +208,6 @@ router.delete('/:id', userController.deleteUser);
  *       500:
  *         description: Internal Server Error
  */
-router.put('/:id', userController.updateUser);
+router.put('/:id', authenticateToken, ensureOwnerOrAdmin, userController.updateUser);
 
 module.exports = router;

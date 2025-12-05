@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const authenticateToken = require('../middleware/authMiddleware');
 
 const ordersController = require('../controllers/ordersController');
 
@@ -71,7 +72,7 @@ const ordersController = require('../controllers/ordersController');
  *       500:
  *         description: Internal Server Error
  */
-router.get('/', ordersController.getAllOrders);
+router.get('/', authenticateToken, ordersController.getAllOrders);
 
 /**
  * @swagger
@@ -98,7 +99,7 @@ router.get('/', ordersController.getAllOrders);
  *       500:
  *         description: Internal Server Error
  */
-router.get('/:id', ordersController.getOrderById);
+router.get('/:id', authenticateToken, ordersController.getOrderById);
 
 /**
  * @swagger
@@ -134,7 +135,7 @@ router.get('/:id', ordersController.getOrderById);
  *       500:
  *         description: Internal Server Error
  */
-router.post('/', ordersController.createOrder);
+router.post('/', authenticateToken, ordersController.createOrder);
 
 /**
  * @swagger
@@ -169,7 +170,7 @@ router.post('/', ordersController.createOrder);
  *       500:
  *         description: Internal Server Error
  */
-router.put('/:id', ordersController.updateOrder);
+router.put('/:id', authenticateToken, ordersController.updateOrder);
 
 /**
  * @swagger
@@ -192,7 +193,7 @@ router.put('/:id', ordersController.updateOrder);
  *       500:
  *         description: Internal Server Error
  */
-router.delete('/:id', ordersController.deleteOrder);
+router.delete('/:id', authenticateToken, ordersController.deleteOrder);
 
 /**
  * @swagger
@@ -227,6 +228,6 @@ router.delete('/:id', ordersController.deleteOrder);
  *       500:
  *         description: Internal Server Error
  */
-router.patch('/:id/status', ordersController.updateOrderStatus);
+router.patch('/:id/status', authenticateToken, ordersController.updateOrderStatus);
 
 module.exports = router;

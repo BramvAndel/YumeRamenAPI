@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const dishesController = require('../controllers/dishesController');
 const upload = require('../middleware/upload');
+const authenticateToken = require('../middleware/authMiddleware');
+const authorizeRoles = require('../middleware/roleMiddleware');
 
 /**
  * @swagger
@@ -131,7 +133,7 @@ router.get('/:id', dishesController.getDishById);
  *       500:
  *         description: Internal Server Error
  */
-router.post('/', upload.single('image'), dishesController.createDish);
+router.post('/', authenticateToken, authorizeRoles('admin'), upload.single('image'), dishesController.createDish);
 
 /**
  * @swagger
@@ -171,7 +173,7 @@ router.post('/', upload.single('image'), dishesController.createDish);
  *       500:
  *         description: Internal Server Error
  */
-router.put('/:id', upload.single('image'), dishesController.updateDish);
+router.put('/:id', authenticateToken, authorizeRoles('admin'), upload.single('image'), dishesController.updateDish);
 
 /**
  * @swagger
@@ -194,6 +196,6 @@ router.put('/:id', upload.single('image'), dishesController.updateDish);
  *       500:
  *         description: Internal Server Error
  */
-router.delete('/:id', dishesController.deleteDish);
+router.delete('/:id', authenticateToken, authorizeRoles('admin'), dishesController.deleteDish);
 
 module.exports = router;
