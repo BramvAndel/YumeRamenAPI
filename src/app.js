@@ -1,0 +1,65 @@
+const express = require("express");
+const cors = require("cors");
+const path = require('path');
+const orderRoutes = require('./routes/orders');
+const dishesRoutes = require('./routes/dishes');
+const userRoutes = require('./routes/user');
+const swaggerUi = require('swagger-ui-express');
+const swaggerJsdoc = require('swagger-jsdoc');
+const logger = require('./utils/logger');
+
+const app = express();
+app.use(express.json());
+    
+const prefix = `/api/${process.env.VERSION}`;
+
+app.use(
+  cors({
+    origin: "*",
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
+
+const swaggerOptions = {
+  definition: {
+    openapi: '3.0.0',
+    info: {
+      title: 'Yume Ramen Noodles API',
+      version: '1.0.0',
+      description: 'API documentation for Yume Ramen Noodles'
+    },
+    servers: [
+      {
+        url: `http://localhost:${process.env.PORT || 3000}/api/${process.env.VERSION}`,
+      }
+    ]
+  },
+  apis: ['./src/routes/*.js'],
+};
+
+const swaggerSpecs = swaggerJsdoc(swaggerOptions);
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
+
+
+// Serve uploaded files statically
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+
+// Health Check Endpoint
+app.get(`${prefix}/health`, (req, res) => {
+  res.send('API is healthy');
+});
+
+app.use(`${prefix}/orders`, orderRoutes);
+app.use(`${prefix}/dishes`, dishesRoutes);
+app.use(`${prefix}/users`, userRoutes);
+
+// Handle 404 for undefined routes
+app.use((req, res) => {
+  logger.log(`Route not found: ${req.method} ${req.originalUrl}`);
+  res.status(404).json({ message: "Route not found" });
+});
+
+
+
+module.exports = app;
