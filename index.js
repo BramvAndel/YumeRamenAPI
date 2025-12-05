@@ -17,3 +17,12 @@ app.listen(PORT, () => {
 
 // TODO: betalingen confirm backend implementeren
 // TODO: input validation toevoegen (bijv. met Joi of express-validator)
+
+// improvements:
+// - connection pooling for database
+// - service layer between controllers and db
+// - centrelized config
+// - centralized error handling middleware
+// - custom error classes
+// - use security headers with helmet
+// - 
