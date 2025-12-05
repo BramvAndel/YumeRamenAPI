@@ -4,6 +4,7 @@ const path = require('path');
 const orderRoutes = require('./routes/orders');
 const dishesRoutes = require('./routes/dishes');
 const userRoutes = require('./routes/user');
+const authRoutes = require('./routes/auth');
 const swaggerUi = require('swagger-ui-express');
 const swaggerJsdoc = require('swagger-jsdoc');
 const logger = require('./utils/logger');
@@ -53,6 +54,7 @@ app.get(`${prefix}/health`, (req, res) => {
 app.use(`${prefix}/orders`, orderRoutes);
 app.use(`${prefix}/dishes`, dishesRoutes);
 app.use(`${prefix}/users`, userRoutes);
+app.use(`${prefix}/auth`, authRoutes);
 
 // Handle 404 for undefined routes
 app.use((req, res) => {
