@@ -16,5 +16,4 @@ app.listen(PORT, () => {
 
 
 // TODO: betalingen confirm backend implementeren
-// TODO: rate limiting implementeren
 // TODO: input validation toevoegen (bijv. met Joi of express-validator)
