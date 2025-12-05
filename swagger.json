@@ -55,6 +55,9 @@
                     },
                     "refreshToken": {
                       "type": "string"
+                    },
+                    "userId": {
+                      "type": "integer"
                     }
                   }
                 }
