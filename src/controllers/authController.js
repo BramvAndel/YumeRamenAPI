@@ -55,7 +55,13 @@ const login = (req, res) => {
                     logger.error('Error saving refresh token:', err);
                     return res.status(500).json({ error: 'Internal Server Error' });
                 }
-                res.json({ message: 'Login successful', accessToken, refreshToken });
+                res.json({ 
+                    message: 'Login successful', 
+                    accessToken, 
+                    refreshToken,
+                    userId: user.userID,
+                    role: user.role
+                });
             });
         });
     });

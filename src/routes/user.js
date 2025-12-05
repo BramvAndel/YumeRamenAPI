@@ -204,9 +204,6 @@ router.delete('/:id', authenticateToken, ensureOwnerOrAdmin, userController.dele
  *                 type: string
  *               address:
  *                 type: string
- *               role:
- *                 type: string
- *                 enum: [user, admin]
  *     responses:
  *       200:
  *         description: The user was updated

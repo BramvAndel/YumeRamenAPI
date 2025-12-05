@@ -92,6 +92,17 @@ const updateUser = (req, res) => {
     
     const { username, password, email, address, role } = req.body;
     
+    // Security check: Only admins can update roles
+    if (role !== undefined) {
+        if (req.user.role !== 'admin') {
+            return res.status(403).json({ error: 'Access denied: Only admins can change roles' });
+        }
+        // Prevent admins from changing their own role
+        if (req.user.userId == id) {
+            return res.status(403).json({ error: 'Access denied: You cannot change your own role' });
+        }
+    }
+    
     let fields = [];
     let values = [];
 
