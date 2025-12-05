@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const authenticateToken = require('../middleware/authMiddleware');
 const ensureOwnerOrAdmin = require('../middleware/ownerMiddleware');
+const authorizeRoles = require('../middleware/roleMiddleware');
 
 const userController = require('../controllers/userController');
 
@@ -65,6 +66,7 @@ const userController = require('../controllers/userController');
  *     tags: [Users]
  *     security:
  *       - bearerAuth: []
+ *     description: Requires Admin privileges
  *     responses:
  *       200:
  *         description: The list of the users
@@ -77,7 +79,7 @@ const userController = require('../controllers/userController');
  *       500:
  *         description: Internal Server Error
  */
-router.get('/', authenticateToken, userController.getAllUsers);
+router.get('/', authenticateToken, authorizeRoles('admin'), userController.getAllUsers);
 
 /**
  * @swagger

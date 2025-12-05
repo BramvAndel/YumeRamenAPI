@@ -208,6 +208,8 @@ Base URL: http://localhost:3000/api/v1
 ### GET /users
 **Summary**: Returns the list of all users
 
+**Description**: Requires Admin privileges
+
 **Tags**: Users
 
 **Responses**:
