@@ -4,7 +4,12 @@ const logger = require('../utils/logger');
 const getAllOrders = (req, res) => {
     logger.log("Get all orders endpoint called");
     
-    const query = 'SELECT * FROM orders';
+    const query = `
+        SELECT o.*, oi.dishID, oi.aantal, d.Name as DishName, d.Price as DishPrice
+        FROM orders o
+        LEFT JOIN order_items oi ON o.OrderID = oi.orderID
+        LEFT JOIN dishes d ON oi.dishID = d.DishID
+    `;
     
     connection.query(query, (err, results) => {
         if (err) {
@@ -12,7 +17,30 @@ const getAllOrders = (req, res) => {
             res.status(500).json({ error: 'Internal Server Error' });
             return;
         }
-        res.json(results);
+        
+        const ordersMap = new Map();
+        
+        results.forEach(row => {
+            if (!ordersMap.has(row.OrderID)) {
+                ordersMap.set(row.OrderID, {
+                    OrderID: row.OrderID,
+                    UserID: row.UserID,
+                    OrderDate: row.OrderDate,
+                    items: []
+                });
+            }
+            
+            if (row.dishID) {
+                ordersMap.get(row.OrderID).items.push({
+                    dishID: row.dishID,
+                    quantity: row.aantal,
+                    name: row.DishName,
+                    price: row.DishPrice
+                });
+            }
+        });
+        
+        res.json(Array.from(ordersMap.values()));
     });
 };
 
@@ -34,29 +62,93 @@ const getOrderById = (req, res) => {
             return;
         }
 
-        res.json(results[0]);
+        const order = results[0];
+
+        // Fetch items for this order
+        const itemsQuery = `
+            SELECT oi.dishID, oi.aantal, d.Name, d.Price 
+            FROM order_items oi
+            JOIN dishes d ON oi.dishID = d.DishID
+            WHERE oi.orderID = ?
+        `;
+
+        connection.query(itemsQuery, [id], (err, items) => {
+            if (err) {
+                logger.error('Error fetching order items:', err);
+                res.status(500).json({ error: 'Internal Server Error' });
+                return;
+            }
+            
+            order.items = items;
+            res.json(order);
+        });
     });
 };
 
 const createOrder = (req, res) => {
     logger.log("Create order endpoint called");
+    logger.log("User from token:", req.user); // Debug log
     
-    const { userID } = req.body;
+    // Use the authenticated user's ID
+    const userID = req.user.userId;
+    const { items } = req.body; // Expect items: [{ dishID, quantity }]
+
+    logger.log("Received order items payload:", JSON.stringify(items));
 
     if (!userID) {
-        return res.status(400).json({ error: 'userID is required' });
+        return res.status(400).json({ error: 'User ID missing from token' });
     }
 
-    const query = 'INSERT INTO orders (UserID) VALUES (?)';
+    if (!items || !Array.isArray(items) || items.length === 0) {
+        return res.status(400).json({ error: 'Order must contain at least one item' });
+    }
 
-    connection.query(query, [userID], (err, results) => {
+    connection.beginTransaction(err => {
         if (err) {
-            logger.error('Error creating order:', err);
-            res.status(500).json({ error: 'Internal Server Error' });
-            return;
+            logger.error('Error starting transaction:', err);
+            return res.status(500).json({ error: 'Internal Server Error' });
         }
-        logger.log("Order created successfully. Result:", results);
-        res.status(201).json({ message: 'Order created', orderId: results.insertId });
+
+        const orderQuery = 'INSERT INTO orders (UserID) VALUES (?)';
+        connection.query(orderQuery, [userID], (err, results) => {
+            if (err) {
+                return connection.rollback(() => {
+                    logger.error('Error creating order:', err);
+                    res.status(500).json({ error: 'Internal Server Error' });
+                });
+            }
+
+            const orderId = results.insertId;
+            const orderItems = items.map(item => [
+                orderId, 
+                parseInt(item.dishID), 
+                parseInt(item.quantity) || 1
+            ]);
+            
+            logger.log("Mapped order items for DB insertion:", JSON.stringify(orderItems));
+
+            const itemsQuery = 'INSERT INTO order_items (orderID, dishID, aantal) VALUES ?';
+
+            connection.query(itemsQuery, [orderItems], (err) => {
+                if (err) {
+                    return connection.rollback(() => {
+                        logger.error('Error adding order items:', err);
+                        res.status(500).json({ error: 'Internal Server Error' });
+                    });
+                }
+
+                connection.commit(err => {
+                    if (err) {
+                        return connection.rollback(() => {
+                            logger.error('Error committing transaction:', err);
+                            res.status(500).json({ error: 'Internal Server Error' });
+                        });
+                    }
+                    logger.log("Order created successfully with items. OrderID:", orderId);
+                    res.status(201).json({ message: 'Order created', orderId });
+                });
+            });
+        });
     });
 };
 
@@ -126,32 +218,10 @@ const deleteOrder = (req, res) => {
     });
 };
 
-const updateOrderStatus = (req, res) => {
-    const id = req.params.id;
-    const { Status } = req.body;
-    logger.log(`Update order status endpoint called for ID: ${id}`);
-
-    const query = 'UPDATE orders SET Status = ? WHERE OrderID = ?';
-    connection.query(query, [Status, id], (err, results) => {
-        if (err) {
-            logger.error('Error updating order status:', err);
-            res.status(500).json({ error: 'Internal Server Error' });
-            return;
-        }
-        if (results.affectedRows === 0) {
-            res.status(404).json({ error: 'Order not found' });
-            return;
-        }
-
-        res.json({ message: 'Order status updated successfully' });
-    });
-};
-
 module.exports = {
     getAllOrders,
     getOrderById,
     createOrder,
     updateOrder,
-    deleteOrder,
-    updateOrderStatus
+    deleteOrder
 };

@@ -39,12 +39,30 @@ const ordersController = require('../controllers/ordersController');
  *           type: string
  *           enum: [ordered, processing, delivering, completed]
  *           description: The status of the order
+ *         items:
+ *           type: array
+ *           items:
+ *             type: object
+ *             properties:
+ *               dishID:
+ *                 type: integer
+ *               quantity:
+ *                 type: integer
+ *               name:
+ *                 type: string
+ *               price:
+ *                 type: number
  *       example:
  *         OrderID: 1
  *         UserID: 1
  *         Ordered_at: 2023-10-27T10:00:00Z
  *         Paid: false
  *         Status: ordered
+ *         items:
+ *           - dishID: 2
+ *             quantity: 1
+ *             name: Miso Ramen
+ *             price: 13.50
  */
 
 /**
@@ -114,10 +132,20 @@ router.get('/:id', authenticateToken, ordersController.getOrderById);
  *           schema:
  *             type: object
  *             required:
- *               - userID
+ *               - items
  *             properties:
- *               userID:
- *                 type: integer
+ *               items:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   required:
+ *                     - dishID
+ *                   properties:
+ *                     dishID:
+ *                       type: integer
+ *                     quantity:
+ *                       type: integer
+ *                       default: 1
  *     responses:
  *       201:
  *         description: The order was successfully created
@@ -194,40 +222,5 @@ router.put('/:id', authenticateToken, ordersController.updateOrder);
  *         description: Internal Server Error
  */
 router.delete('/:id', authenticateToken, ordersController.deleteOrder);
-
-/**
- * @swagger
- * /orders/{id}/status:
- *   patch:
- *     summary: Update the order status by the id
- *     tags: [Orders]
- *     parameters:
- *       - in: path
- *         name: id
- *         schema:
- *           type: integer
- *         required: true
- *         description: The order id
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - Status
- *             properties:
- *               Status:
- *                 type: string
- *                 enum: [ordered, processing, delivering, completed]
- *     responses:
- *       200:
- *         description: The order status was updated
- *       404:
- *         description: The order was not found
- *       500:
- *         description: Internal Server Error
- */
-router.patch('/:id/status', authenticateToken, ordersController.updateOrderStatus);
 
 module.exports = router;

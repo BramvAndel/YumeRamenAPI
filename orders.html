@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yume Ramen - Order Mock</title>
+    <style>
+        body { font-family: sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .section { border: 1px solid #ccc; padding: 20px; margin-bottom: 20px; border-radius: 5px; }
+        .hidden { display: none; }
+        .dish-card { border: 1px solid #eee; padding: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .dish-info { flex-grow: 1; }
+        button { cursor: pointer; padding: 8px 16px; background: #333; color: white; border: none; border-radius: 4px; }
+        button:hover { background: #555; }
+        input { padding: 8px; margin-right: 10px; }
+        #message { margin-top: 10px; padding: 10px; border-radius: 4px; }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+    <h1>🍜 Yume Ramen Ordering</h1>
+
+    <!-- Login Section -->
+    <div id="loginSection" class="section">
+        <h2>Login</h2>
+        <input type="email" id="email" placeholder="Email" value="john@example.com">
+        <input type="password" id="password" placeholder="Password" value="password123">
+        <button onclick="login()">Login</button>
+    </div>
+
+    <!-- Order Section -->
+    <div id="orderSection" class="section hidden">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h2>Menu</h2>
+            <button onclick="logout()" style="background: #dc3545;">Logout</button>
+        </div>
+        <div id="dishesList">Loading dishes...</div>
+        <div style="margin-top: 20px; text-align: right;">
+            <h3>Total Items: <span id="totalItems">0</span></h3>
+            <button onclick="placeOrder()" style="background: #28a745; font-size: 1.1em;">Place Order</button>
+        </div>
+    </div>
+
+    <div id="message" class="hidden"></div>
+
+    <script>
+        const API_URL = 'http://localhost:3000/api/v1';
+        let token = localStorage.getItem('accessToken');
+        let cart = {}; // { dishID: quantity }
+
+        // Check if already logged in
+        if (token) {
+            showOrderSection();
+        }
+
+        async function login() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                const response = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    token = data.accessToken;
+                    localStorage.setItem('accessToken', token);
+                    localStorage.setItem('refreshToken', data.refreshToken);
+                    showMessage('Login successful!', 'success');
+                    showOrderSection();
+                } else {
+                    showMessage(data.error || 'Login failed', 'error');
+                }
+            } catch (err) {
+                showMessage('Network error', 'error');
+            }
+        }
+
+        function logout() {
+            token = null;
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('refreshToken');
+            document.getElementById('loginSection').classList.remove('hidden');
+            document.getElementById('orderSection').classList.add('hidden');
+            showMessage('Logged out', 'success');
+        }
+
+        function showOrderSection() {
+            document.getElementById('loginSection').classList.add('hidden');
+            document.getElementById('orderSection').classList.remove('hidden');
+            fetchDishes();
+        }
+
+        async function fetchDishes() {
+            try {
+                const response = await fetch(`${API_URL}/dishes`);
+                const dishes = await response.json();
+                
+                const container = document.getElementById('dishesList');
+                container.innerHTML = '';
+
+                dishes.forEach(dish => {
+                    const div = document.createElement('div');
+                    div.className = 'dish-card';
+                    div.innerHTML = `
+                        <div class="dish-info">
+                            <h3>${dish.Name}</h3>
+                            <p>${dish.Ingredients}</p>
+                            <strong>$${dish.Price}</strong>
+                        </div>
+                        <div>
+                            <input type="number" min="0" value="0" style="width: 50px;" 
+                                onchange="updateCart(${dish.DishID}, this.value)">
+                        </div>
+                    `;
+                    container.appendChild(div);
+                });
+            } catch (err) {
+                showMessage('Error loading dishes', 'error');
+            }
+        }
+
+        function updateCart(dishID, quantity) {
+            quantity = parseInt(quantity);
+            if (quantity > 0) {
+                cart[dishID] = quantity;
+            } else {
+                delete cart[dishID];
+            }
+            
+            const total = Object.values(cart).reduce((a, b) => a + b, 0);
+            document.getElementById('totalItems').innerText = total;
+        }
+
+        async function placeOrder() {
+            const items = Object.entries(cart).map(([dishID, quantity]) => ({
+                dishID: parseInt(dishID),
+                quantity
+            }));
+
+            if (items.length === 0) {
+                showMessage('Please select at least one dish', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/orders`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ items })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showMessage(`Order placed successfully! ID: ${data.orderId}`, 'success');
+                    cart = {};
+                    fetchDishes(); // Reset inputs
+                    document.getElementById('totalItems').innerText = '0';
+                } else {
+                    showMessage(data.error || 'Order failed', 'error');
+                }
+            } catch (err) {
+                showMessage('Network error', 'error');
+            }
+        }
+
+        function showMessage(text, type) {
+            const el = document.getElementById('message');
+            el.innerText = text;
+            el.className = type;
+            el.classList.remove('hidden');
+            setTimeout(() => el.classList.add('hidden'), 3000);
+        }
+    </script>
+</body>
+</html>

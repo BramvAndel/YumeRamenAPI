@@ -11,20 +11,21 @@ const logger = require('./utils/logger');
 const { apiLimiter } = require('./middleware/rateLimiter');
 
 const app = express();
+
+app.use(
+  cors({
+    origin: "*",
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
+
 app.use(express.json());
     
 const prefix = `/api/${process.env.VERSION}`;
 
 // Apply global rate limiter to all API routes
 app.use(prefix, apiLimiter);
-
-app.use(
-  cors({
-    origin: "*",
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  })
-);
 
 const swaggerOptions = {
   definition: {
