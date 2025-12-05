@@ -39,7 +39,21 @@ const swaggerOptions = {
       {
         url: `http://localhost:${process.env.PORT || 3000}/api/${process.env.VERSION}`,
       }
-    ]
+    ],
+    components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT',
+        },
+      },
+    },
+    security: [
+      {
+        bearerAuth: [],
+      },
+    ],
   },
   apis: ['./src/routes/*.js'],
 };

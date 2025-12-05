@@ -100,6 +100,9 @@ router.get('/:id', dishesController.getDishById);
  *   post:
  *     summary: Create a new dish
  *     tags: [Dishes]
+ *     security:
+ *       - bearerAuth: []
+ *     description: Requires Admin privileges
  *     requestBody:
  *       required: true
  *       content:
@@ -141,6 +144,9 @@ router.post('/', authenticateToken, authorizeRoles('admin'), upload.single('imag
  *   put:
  *     summary: Update the dish by the id
  *     tags: [Dishes]
+ *     security:
+ *       - bearerAuth: []
+ *     description: Requires Admin privileges
  *     parameters:
  *       - in: path
  *         name: id
@@ -181,6 +187,9 @@ router.put('/:id', authenticateToken, authorizeRoles('admin'), upload.single('im
  *   delete:
  *     summary: Remove the dish by id
  *     tags: [Dishes]
+ *     security:
+ *       - bearerAuth: []
+ *     description: Requires Admin privileges
  *     parameters:
  *       - in: path
  *         name: id

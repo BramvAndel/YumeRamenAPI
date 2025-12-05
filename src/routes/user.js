@@ -63,6 +63,8 @@ const userController = require('../controllers/userController');
  *   get:
  *     summary: Returns the list of all users
  *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: The list of the users
@@ -83,6 +85,8 @@ router.get('/', authenticateToken, userController.getAllUsers);
  *   get:
  *     summary: Get the user by id
  *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -129,9 +133,6 @@ router.get('/:id', authenticateToken, userController.getUserById);
  *                 type: string
  *               address:
  *                 type: string
- *               role:
- *                 type: string
- *                 enum: [user, admin]
  *     responses:
  *       201:
  *         description: The user was successfully created
@@ -152,6 +153,9 @@ router.post('/', userController.createUser);
  *   delete:
  *     summary: Remove the user by id
  *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     description: Requires Owner or Admin privileges
  *     parameters:
  *       - in: path
  *         name: id
@@ -175,6 +179,9 @@ router.delete('/:id', authenticateToken, ensureOwnerOrAdmin, userController.dele
  *   put:
  *     summary: Update the user by the id
  *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     description: Requires Owner or Admin privileges
  *     parameters:
  *       - in: path
  *         name: id

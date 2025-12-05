@@ -65,6 +65,8 @@ Base URL: http://localhost:3000/api/v1
 ### POST /dishes
 **Summary**: Create a new dish
 
+**Description**: Requires Admin privileges
+
 **Tags**: Dishes
 
 **Request Body**:
@@ -95,6 +97,8 @@ Base URL: http://localhost:3000/api/v1
 ### PUT /dishes/{id}
 **Summary**: Update the dish by the id
 
+**Description**: Requires Admin privileges
+
 **Tags**: Dishes
 
 **Parameters**:
@@ -112,6 +116,8 @@ Base URL: http://localhost:3000/api/v1
 
 ### DELETE /dishes/{id}
 **Summary**: Remove the dish by id
+
+**Description**: Requires Admin privileges
 
 **Tags**: Dishes
 
@@ -199,24 +205,6 @@ Base URL: http://localhost:3000/api/v1
 
 ---
 
-### PATCH /orders/{id}/status
-**Summary**: Update the order status by the id
-
-**Tags**: Orders
-
-**Parameters**:
-- `id` (path): The order id (Required)
-
-**Request Body**:
-- Content-Type: `application/json`
-
-**Responses**:
-- **200**: The order status was updated
-- **404**: The order was not found
-- **500**: Internal Server Error
-
----
-
 ### GET /users
 **Summary**: Returns the list of all users
 
@@ -261,6 +249,8 @@ Base URL: http://localhost:3000/api/v1
 ### DELETE /users/{id}
 **Summary**: Remove the user by id
 
+**Description**: Requires Owner or Admin privileges
+
 **Tags**: Users
 
 **Parameters**:
@@ -275,6 +265,8 @@ Base URL: http://localhost:3000/api/v1
 
 ### PUT /users/{id}
 **Summary**: Update the user by the id
+
+**Description**: Requires Owner or Admin privileges
 
 **Tags**: Users
 

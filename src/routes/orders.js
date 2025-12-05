@@ -78,6 +78,8 @@ const ordersController = require('../controllers/ordersController');
  *   get:
  *     summary: Returns the list of all orders
  *     tags: [Orders]
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: The list of the orders
@@ -98,6 +100,8 @@ router.get('/', authenticateToken, ordersController.getAllOrders);
  *   get:
  *     summary: Get the order by id
  *     tags: [Orders]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -125,6 +129,8 @@ router.get('/:id', authenticateToken, ordersController.getOrderById);
  *   post:
  *     summary: Create a new order
  *     tags: [Orders]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -171,6 +177,8 @@ router.post('/', authenticateToken, ordersController.createOrder);
  *   put:
  *     summary: Update the order by the id
  *     tags: [Orders]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -206,6 +214,8 @@ router.put('/:id', authenticateToken, ordersController.updateOrder);
  *   delete:
  *     summary: Remove the order by id
  *     tags: [Orders]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
