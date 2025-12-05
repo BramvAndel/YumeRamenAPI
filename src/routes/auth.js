@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/authController');
+const { authLimiter } = require('../middleware/rateLimiter');
 
 /**
  * @swagger
@@ -50,7 +51,7 @@ const authController = require('../controllers/authController');
  *       500:
  *         description: Internal server error
  */
-router.post('/login', authController.login);
+router.post('/login', authLimiter, authController.login);
 
 /**
  * @swagger
