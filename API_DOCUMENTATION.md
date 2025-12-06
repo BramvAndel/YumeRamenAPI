@@ -2,7 +2,7 @@
 
 API documentation for Yume Ramen Noodles
 
-Base URL: http://localhost:3000/api/v1
+Base URL: http://localhost:80/api/v1
 
 ## Endpoints
 

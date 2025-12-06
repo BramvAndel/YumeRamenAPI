@@ -20,10 +20,9 @@ const getAllOrders = (req, res, next) => {
         
         results.forEach(row => {
             if (!ordersMap.has(row.OrderID)) {
+                const { dishID, aantal, DishName, DishPrice, ...orderData } = row;
                 ordersMap.set(row.OrderID, {
-                    OrderID: row.OrderID,
-                    UserID: row.UserID,
-                    OrderDate: row.OrderDate,
+                    ...orderData,
                     items: []
                 });
             }
