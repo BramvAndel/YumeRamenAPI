@@ -7,7 +7,7 @@
   },
   "servers": [
     {
-      "url": "http://localhost:80/api/v1"
+      "url": "http://localhost:3000/api/v1"
     }
   ],
   "paths": {
@@ -446,6 +446,13 @@
                         }
                       }
                     }
+                  },
+                  "delivery_address": {
+                    "type": "string"
+                  },
+                  "paid": {
+                    "type": "boolean",
+                    "default": false
                   }
                 }
               }
@@ -663,6 +670,9 @@
                   "username": {
                     "type": "string"
                   },
+                  "last_name": {
+                    "type": "string"
+                  },
                   "password": {
                     "type": "string"
                   },
@@ -807,6 +817,9 @@
                   "username": {
                     "type": "string"
                   },
+                  "last_name": {
+                    "type": "string"
+                  },
                   "password": {
                     "type": "string"
                   },
@@ -892,6 +905,10 @@
             "type": "integer",
             "description": "The id of the user who placed the order"
           },
+          "delivery_address": {
+            "type": "string",
+            "description": "The delivery address for the order"
+          },
           "Ordered_at": {
             "type": "string",
             "format": "date-time",
@@ -975,6 +992,10 @@
           "username": {
             "type": "string",
             "description": "The username"
+          },
+          "last_name": {
+            "type": "string",
+            "description": "The user's last name"
           },
           "password": {
             "type": "string",

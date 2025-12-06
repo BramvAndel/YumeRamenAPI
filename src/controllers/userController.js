@@ -35,7 +35,7 @@ const getUserById = (req, res, next) => {
 const createUser = (req, res, next) => {
     logger.log("Create user endpoint called");
     // Security: Don't allow setting 'role' from the body during public registration
-    const { username, password, email, address, phone_number } = req.body;
+    const { username, last_name, password, email, address, phone_number } = req.body;
 
     if (!username || !password || !email) {
         return res.status(400).json({ error: 'Username, password, and email are required' });
@@ -49,8 +49,8 @@ const createUser = (req, res, next) => {
 
         // Default role is always 'user' for new registrations
         const userRole = 'user';
-        const query = 'INSERT INTO users (username, password, email, address, phone_number, role) VALUES (?, ?, ?, ?, ?, ?)';
-        connection.query(query, [username, hash, email, address, phone_number, userRole], (err, results) => {
+        const query = 'INSERT INTO users (username, last_name, password, email, address, phone_number, role) VALUES (?, ?, ?, ?, ?, ?, ?)';
+        connection.query(query, [username, last_name, hash, email, address, phone_number, userRole], (err, results) => {
             if (err) {
                 return next(err);
             }
@@ -79,7 +79,7 @@ const updateUser = (req, res, next) => {
     const id = req.params.id;
     logger.log(`Update user endpoint called for ID: ${id}`);
     
-    const { username, password, email, address, phone_number, role } = req.body;
+    const { username, last_name, password, email, address, phone_number, role } = req.body;
     
     // Security check: Only admins can update roles
     if (role !== undefined) {
@@ -98,6 +98,10 @@ const updateUser = (req, res, next) => {
     if (username !== undefined) {
         fields.push('username = ?');
         values.push(username);
+    }
+    if (last_name !== undefined) {
+        fields.push('last_name = ?');
+        values.push(last_name);
     }
     if (password !== undefined) {
         // Note: In a real app, you should hash the password here too if it's being updated

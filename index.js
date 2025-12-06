@@ -15,8 +15,7 @@ app.listen(PORT, () => {
 });
 
 
-// TODO: betalingen confirm backend implementeren
-// TODO: input validation toevoegen (bijv. met Joi of express-validator)
+// TODO: implement websockets for real-time features
 
 // improvements:
 // - connection pooling for database

@@ -83,9 +83,9 @@ const createOrder = (req, res, next) => {
     
     // Use the authenticated user's ID
     const userID = req.user.userId;
-    const { items } = req.body; // Expect items: [{ dishID, quantity }]
+    const { items, delivery_address, paid } = req.body; // Expect items: [{ dishID, quantity }]
 
-    logger.log("Received order items payload:", JSON.stringify(items));
+    logger.log("Received order payload:", JSON.stringify({ items, delivery_address, paid }));
 
     if (!userID) {
         return res.status(400).json({ error: 'User ID missing from token' });
@@ -100,8 +100,8 @@ const createOrder = (req, res, next) => {
             return next(err);
         }
 
-        const orderQuery = 'INSERT INTO orders (UserID) VALUES (?)';
-        connection.query(orderQuery, [userID], (err, results) => {
+        const orderQuery = 'INSERT INTO orders (UserID, delivery_address, Paid) VALUES (?, ?, ?)';
+        connection.query(orderQuery, [userID, delivery_address, paid ? 1 : 0], (err, results) => {
             if (err) {
                 return connection.rollback(() => {
                     next(err);
@@ -153,6 +153,15 @@ const updateOrder = (req, res, next) => {
     if (Status !== undefined) {
         fields.push('Status = ?');
         values.push(Status);
+
+        // Automatically update timestamps based on status change
+        if (Status === 'processing') {
+            fields.push('processing_at = NOW()');
+        } else if (Status === 'delivering') {
+            fields.push('Delivering_at = NOW()');
+        } else if (Status === 'completed') {
+            fields.push('Completed_at = NOW()');
+        }
     }
 
     if (Paid !== undefined) {

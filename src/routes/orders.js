@@ -19,6 +19,9 @@ const ordersController = require('../controllers/ordersController');
  *         UserID:
  *           type: integer
  *           description: The id of the user who placed the order
+ *         delivery_address:
+ *           type: string
+ *           description: The delivery address for the order
  *         Ordered_at:
  *           type: string
  *           format: date-time
@@ -152,6 +155,11 @@ router.get('/:id', authenticateToken, ordersController.getOrderById);
  *                     quantity:
  *                       type: integer
  *                       default: 1
+ *               delivery_address:
+ *                 type: string
+ *               paid:
+ *                 type: boolean
+ *                 default: false
  *     responses:
  *       201:
  *         description: The order was successfully created

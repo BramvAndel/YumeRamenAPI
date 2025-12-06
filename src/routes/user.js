@@ -23,6 +23,9 @@ const userController = require('../controllers/userController');
  *         username:
  *           type: string
  *           description: The username
+ *         last_name:
+ *           type: string
+ *           description: The user's last name
  *         password:
  *           type: string
  *           description: The user password
@@ -132,6 +135,8 @@ router.get('/:id', authenticateToken, userController.getUserById);
  *             properties:
  *               username:
  *                 type: string
+ *               last_name:
+ *                 type: string
  *               password:
  *                 type: string
  *               email:
@@ -204,6 +209,8 @@ router.delete('/:id', authenticateToken, ensureOwnerOrAdmin, userController.dele
  *             type: object
  *             properties:
  *               username:
+ *                 type: string
+ *               last_name:
  *                 type: string
  *               password:
  *                 type: string

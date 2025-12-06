@@ -5,6 +5,7 @@
 CREATE TABLE IF NOT EXISTS users (
     userID INT(11) AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(255) NOT NULL,
+    last_name VARCHAR(255),
     password VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
     address VARCHAR(255),
@@ -27,6 +28,7 @@ CREATE TABLE IF NOT EXISTS dishes (
 CREATE TABLE IF NOT EXISTS orders (
     OrderID INT(11) AUTO_INCREMENT PRIMARY KEY,
     UserID INT(11) NOT NULL,
+    delivery_address VARCHAR(255),
     Ordered_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     processing_at DATETIME NULL,
     Delivering_at DATETIME NULL,
