@@ -671,6 +671,9 @@
                   },
                   "address": {
                     "type": "string"
+                  },
+                  "phone_number": {
+                    "type": "string"
                   }
                 }
               }
@@ -811,6 +814,9 @@
                     "type": "string"
                   },
                   "address": {
+                    "type": "string"
+                  },
+                  "phone_number": {
                     "type": "string"
                   }
                 }
@@ -981,6 +987,10 @@
           "address": {
             "type": "string",
             "description": "The user address"
+          },
+          "phone_number": {
+            "type": "string",
+            "description": "The user phone number"
           },
           "role": {
             "type": "string",

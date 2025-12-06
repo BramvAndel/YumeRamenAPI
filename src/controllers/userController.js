@@ -35,7 +35,7 @@ const getUserById = (req, res, next) => {
 const createUser = (req, res, next) => {
     logger.log("Create user endpoint called");
     // Security: Don't allow setting 'role' from the body during public registration
-    const { username, password, email, address } = req.body;
+    const { username, password, email, address, phone_number } = req.body;
 
     if (!username || !password || !email) {
         return res.status(400).json({ error: 'Username, password, and email are required' });
@@ -49,8 +49,8 @@ const createUser = (req, res, next) => {
 
         // Default role is always 'user' for new registrations
         const userRole = 'user';
-        const query = 'INSERT INTO users (username, password, email, address, role) VALUES (?, ?, ?, ?, ?)';
-        connection.query(query, [username, hash, email, address, userRole], (err, results) => {
+        const query = 'INSERT INTO users (username, password, email, address, phone_number, role) VALUES (?, ?, ?, ?, ?, ?)';
+        connection.query(query, [username, hash, email, address, phone_number, userRole], (err, results) => {
             if (err) {
                 return next(err);
             }
@@ -79,7 +79,7 @@ const updateUser = (req, res, next) => {
     const id = req.params.id;
     logger.log(`Update user endpoint called for ID: ${id}`);
     
-    const { username, password, email, address, role } = req.body;
+    const { username, password, email, address, phone_number, role } = req.body;
     
     // Security check: Only admins can update roles
     if (role !== undefined) {
@@ -111,6 +111,10 @@ const updateUser = (req, res, next) => {
     if (address !== undefined) {
         fields.push('address = ?');
         values.push(address);
+    }
+    if (phone_number !== undefined) {
+        fields.push('phone_number = ?');
+        values.push(phone_number);
     }
     if (role !== undefined) {
         fields.push('role = ?');

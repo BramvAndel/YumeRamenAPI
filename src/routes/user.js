@@ -32,6 +32,9 @@ const userController = require('../controllers/userController');
  *         address:
  *           type: string
  *           description: The user address
+ *         phone_number:
+ *           type: string
+ *           description: The user phone number
  *         role:
  *           type: string
  *           enum: [user, admin]
@@ -135,6 +138,8 @@ router.get('/:id', authenticateToken, userController.getUserById);
  *                 type: string
  *               address:
  *                 type: string
+ *               phone_number:
+ *                 type: string
  *     responses:
  *       201:
  *         description: The user was successfully created
@@ -205,6 +210,8 @@ router.delete('/:id', authenticateToken, ensureOwnerOrAdmin, userController.dele
  *               email:
  *                 type: string
  *               address:
+ *                 type: string
+ *               phone_number:
  *                 type: string
  *     responses:
  *       200:
