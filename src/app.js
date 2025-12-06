@@ -9,6 +9,7 @@ const swaggerUi = require('swagger-ui-express');
 const swaggerJsdoc = require('swagger-jsdoc');
 const logger = require('./utils/logger');
 const { apiLimiter } = require('./middleware/rateLimiter');
+const errorHandler = require('./middleware/errorHandler');
 
 const app = express();
 
@@ -81,6 +82,6 @@ app.use((req, res) => {
   res.status(404).json({ message: "Route not found" });
 });
 
-
+app.use(errorHandler);
 
 module.exports = app;

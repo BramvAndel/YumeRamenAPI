@@ -21,6 +21,7 @@ app.listen(PORT, () => {
 // improvements:
 // - connection pooling for database
 // - service layer between controllers and db
+// - promise-based db queries
 // - centrelized config
 // - centralized error handling middleware
 // - custom error classes

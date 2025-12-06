@@ -2,20 +2,18 @@ const { connection } = require('../db');
 const logger = require('../utils/logger');
 const bcrypt = require('bcrypt');
 
-const getAllUsers = (req, res) => {
+const getAllUsers = (req, res, next) => {
     logger.log("Get all users endpoint called");
     const query = 'SELECT * FROM users';
     connection.query(query, (err, results) => {
         if (err) {
-            logger.error('Error fetching users:', err);
-            res.status(500).json({ error: 'Internal Server Error' });
-            return;
+            return next(err);
         }
         res.json(results);
     });
 };
 
-const getUserById = (req, res) => {
+const getUserById = (req, res, next) => {
     const id = req.params.id;
     logger.log(`Get user by ID endpoint called for ID: ${id}`);
     
@@ -23,21 +21,18 @@ const getUserById = (req, res) => {
 
     connection.query(query, [id], (err, results) => {
         if (err) {
-            logger.error('Error fetching user:', err);
-            res.status(500).json({ error: 'Internal Server Error' });
-            return;
+            return next(err);
         }
 
         if (results.length === 0) {
-            res.status(404).json({ error: 'User not found' });
-            return;
+            return res.status(404).json({ error: 'User not found' });
         }
 
         res.json(results[0]);
     });
 };
 
-const createUser = (req, res) => {
+const createUser = (req, res, next) => {
     logger.log("Create user endpoint called");
     // Security: Don't allow setting 'role' from the body during public registration
     const { username, password, email, address } = req.body;
@@ -49,8 +44,7 @@ const createUser = (req, res) => {
     const saltRounds = 10;
     bcrypt.hash(password, saltRounds, (err, hash) => {
         if (err) {
-            logger.error('Error hashing password:', err);
-            return res.status(500).json({ error: 'Internal Server Error' });
+            return next(err);
         }
 
         // Default role is always 'user' for new registrations
@@ -58,35 +52,30 @@ const createUser = (req, res) => {
         const query = 'INSERT INTO users (username, password, email, address, role) VALUES (?, ?, ?, ?, ?)';
         connection.query(query, [username, hash, email, address, userRole], (err, results) => {
             if (err) {
-                logger.error('Error creating user:', err);
-                res.status(500).json({ error: 'Internal Server Error' });
-                return;
+                return next(err);
             }
             res.status(201).json({ message: 'User created', userId: results.insertId });
         });
     });
 };
 
-const deleteUser = (req, res) => {
+const deleteUser = (req, res, next) => {
     const id = req.params.id;
     logger.log(`Delete user endpoint called for ID: ${id}`);
 
     const query = 'DELETE FROM users WHERE UserID = ?';
     connection.query(query, [id], (err, results) => {
         if (err) {
-            logger.error('Error deleting user:', err);
-            res.status(500).json({ error: 'Internal Server Error' });
-            return;
+            return next(err);
         }
         if (results.affectedRows === 0) {
-            res.status(404).json({ error: 'User not found' });
-            return;
+            return res.status(404).json({ error: 'User not found' });
         }
         res.json({ message: 'User deleted successfully' });
     });
 };
 
-const updateUser = (req, res) => {
+const updateUser = (req, res, next) => {
     const id = req.params.id;
     logger.log(`Update user endpoint called for ID: ${id}`);
     
@@ -137,13 +126,10 @@ const updateUser = (req, res) => {
 
     connection.query(query, values, (err, results) => {
         if (err) {
-            logger.error('Error updating user:', err);
-            res.status(500).json({ error: 'Internal Server Error' });
-            return;
+            return next(err);
         }
         if (results.affectedRows === 0) {
-            res.status(404).json({ error: 'User not found' });
-            return;
+            return res.status(404).json({ error: 'User not found' });
         }
         res.json({ message: 'User updated successfully' });
     });
