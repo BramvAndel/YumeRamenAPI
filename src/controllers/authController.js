@@ -3,7 +3,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const logger = require('../utils/logger');
 
-const login = (req, res) => {
+const login = (req, res, next) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
@@ -13,8 +13,7 @@ const login = (req, res) => {
     const query = 'SELECT * FROM users WHERE email = ?';
     connection.query(query, [email], (err, results) => {
         if (err) {
-            logger.error('Error fetching user during login:', err);
-            return res.status(500).json({ error: 'Internal Server Error' });
+            return next(err);
         }
 
         if (results.length === 0) {
@@ -25,8 +24,7 @@ const login = (req, res) => {
 
         bcrypt.compare(password, user.password, (err, isMatch) => {
             if (err) {
-                logger.error('Error comparing passwords:', err);
-                return res.status(500).json({ error: 'Internal Server Error' });
+                return next(err);
             }
 
             if (!isMatch) {
@@ -52,8 +50,7 @@ const login = (req, res) => {
             const insertQuery = 'INSERT INTO refresh_tokens (token, userID, expires_at) VALUES (?, ?, ?)';
             connection.query(insertQuery, [refreshToken, user.userID, expiresAt], (err) => {
                 if (err) {
-                    logger.error('Error saving refresh token:', err);
-                    return res.status(500).json({ error: 'Internal Server Error' });
+                    return next(err);
                 }
                 res.json({ 
                     message: 'Login successful', 
@@ -67,7 +64,7 @@ const login = (req, res) => {
     });
 };
 
-const refreshToken = (req, res) => {
+const refreshToken = (req, res, next) => {
     const { token } = req.body;
 
     if (!token) {
@@ -84,8 +81,7 @@ const refreshToken = (req, res) => {
         const query = 'SELECT * FROM refresh_tokens WHERE token = ?';
         connection.query(query, [token], (err, results) => {
             if (err) {
-                logger.error('Error checking refresh token:', err);
-                return res.status(500).json({ error: 'Internal Server Error' });
+                return next(err);
             }
 
             if (results.length === 0) {
@@ -104,7 +100,7 @@ const refreshToken = (req, res) => {
     });
 };
 
-const logout = (req, res) => {
+const logout = (req, res, next) => {
     const { token } = req.body;
     
     if (!token) {
@@ -114,8 +110,7 @@ const logout = (req, res) => {
     const query = 'DELETE FROM refresh_tokens WHERE token = ?';
     connection.query(query, [token], (err) => {
         if (err) {
-            logger.error('Error deleting refresh token:', err);
-            return res.status(500).json({ error: 'Internal Server Error' });
+            return next(err);
         }
         res.json({ message: 'Logged out successfully' });
     });

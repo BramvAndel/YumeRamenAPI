@@ -1,7 +1,7 @@
 const { connection } = require('../db');
 const logger = require('../utils/logger');
 
-const getAllOrders = (req, res) => {
+const getAllOrders = (req, res, next) => {
     logger.log("Get all orders endpoint called");
     
     const query = `
@@ -13,9 +13,7 @@ const getAllOrders = (req, res) => {
     
     connection.query(query, (err, results) => {
         if (err) {
-            logger.error('Error fetching orders:', err);
-            res.status(500).json({ error: 'Internal Server Error' });
-            return;
+            return next(err);
         }
         
         const ordersMap = new Map();
@@ -44,7 +42,7 @@ const getAllOrders = (req, res) => {
     });
 };
 
-const getOrderById = (req, res) => {
+const getOrderById = (req, res, next) => {
     const id = req.params.id;
     logger.log(`Get order by ID endpoint called for ID: ${id}`);
     
@@ -52,14 +50,11 @@ const getOrderById = (req, res) => {
 
     connection.query(query, [id], (err, results) => {
         if (err) {
-            logger.error('Error fetching order:', err);
-            res.status(500).json({ error: 'Internal Server Error' });
-            return;
+            return next(err);
         }
 
         if (results.length === 0) {
-            res.status(404).json({ error: 'Order not found' });
-            return;
+            return res.status(404).json({ error: 'Order not found' });
         }
 
         const order = results[0];
@@ -74,9 +69,7 @@ const getOrderById = (req, res) => {
 
         connection.query(itemsQuery, [id], (err, items) => {
             if (err) {
-                logger.error('Error fetching order items:', err);
-                res.status(500).json({ error: 'Internal Server Error' });
-                return;
+                return next(err);
             }
             
             order.items = items;
@@ -85,7 +78,7 @@ const getOrderById = (req, res) => {
     });
 };
 
-const createOrder = (req, res) => {
+const createOrder = (req, res, next) => {
     logger.log("Create order endpoint called");
     logger.log("User from token:", req.user); // Debug log
     
@@ -105,16 +98,14 @@ const createOrder = (req, res) => {
 
     connection.beginTransaction(err => {
         if (err) {
-            logger.error('Error starting transaction:', err);
-            return res.status(500).json({ error: 'Internal Server Error' });
+            return next(err);
         }
 
         const orderQuery = 'INSERT INTO orders (UserID) VALUES (?)';
         connection.query(orderQuery, [userID], (err, results) => {
             if (err) {
                 return connection.rollback(() => {
-                    logger.error('Error creating order:', err);
-                    res.status(500).json({ error: 'Internal Server Error' });
+                    next(err);
                 });
             }
 
@@ -132,16 +123,14 @@ const createOrder = (req, res) => {
             connection.query(itemsQuery, [orderItems], (err) => {
                 if (err) {
                     return connection.rollback(() => {
-                        logger.error('Error adding order items:', err);
-                        res.status(500).json({ error: 'Internal Server Error' });
+                        next(err);
                     });
                 }
 
                 connection.commit(err => {
                     if (err) {
                         return connection.rollback(() => {
-                            logger.error('Error committing transaction:', err);
-                            res.status(500).json({ error: 'Internal Server Error' });
+                            next(err);
                         });
                     }
                     logger.log("Order created successfully with items. OrderID:", orderId);
@@ -152,7 +141,7 @@ const createOrder = (req, res) => {
     });
 };
 
-const updateOrder = (req, res) => {
+const updateOrder = (req, res, next) => {
     const id = req.params.id;
     const { Status, Paid } = req.body;
     
@@ -182,21 +171,18 @@ const updateOrder = (req, res) => {
 
     connection.query(query, values, (err, results) => {
         if (err) {
-            logger.error('Error updating order:', err);
-            res.status(500).json({ error: 'Internal Server Error' });
-            return;
+            return next(err);
         }
 
         if (results.affectedRows === 0) {
-            res.status(404).json({ error: 'Order not found' });
-            return;
+            return res.status(404).json({ error: 'Order not found' });
         }
 
         res.json({ message: 'Order updated successfully' });
     });
 };
 
-const deleteOrder = (req, res) => {
+const deleteOrder = (req, res, next) => {
     const id = req.params.id;
     logger.log(`Delete order endpoint called for ID: ${id}`);
 
@@ -204,14 +190,11 @@ const deleteOrder = (req, res) => {
 
     connection.query(query, [id], (err, results) => {
         if (err) {
-            logger.error('Error deleting order:', err);
-            res.status(500).json({ error: 'Internal Server Error' });
-            return;
+            return next(err);
         }
 
         if (results.affectedRows === 0) {
-            res.status(404).json({ error: 'Order not found' });
-            return;
+            return res.status(404).json({ error: 'Order not found' });
         }
 
         res.json({ message: 'Order deleted successfully' });

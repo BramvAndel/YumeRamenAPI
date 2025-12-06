@@ -3,20 +3,18 @@ const fs = require('fs');
 const path = require('path');
 const logger = require('../utils/logger');
 
-const getAllDishes = (req, res) => {
+const getAllDishes = (req, res, next) => {
     logger.log("Get all dishes endpoint called");
     const query = 'SELECT * FROM dishes';
     connection.query(query, (err, results) => {
         if (err) {
-            logger.error('Error fetching dishes:', err);
-            res.status(500).json({ error: 'Internal Server Error' });
-            return;
+            return next(err);
         }
         res.json(results);
     });
 };
 
-const getDishById = (req, res) => {
+const getDishById = (req, res, next) => {
     const id = req.params.id;
     logger.log(`Get dish by ID endpoint called for ID: ${id}`);
     
@@ -24,21 +22,18 @@ const getDishById = (req, res) => {
 
     connection.query(query, [id], (err, results) => {
         if (err) {
-            logger.error('Error fetching dish:', err);
-            res.status(500).json({ error: 'Internal Server Error' });
-            return;
+            return next(err);
         }
 
         if (results.length === 0) {
-            res.status(404).json({ error: 'Dish not found' });
-            return;
+            return res.status(404).json({ error: 'Dish not found' });
         }
 
         res.json(results[0]);
     });
 };
 
-const createDish = (req, res) => {
+const createDish = (req, res, next) => {
     logger.log("Create dish endpoint called");
     const { Name, Price, Ingredients } = req.body;
     // Normalize path to use forward slashes
@@ -51,15 +46,13 @@ const createDish = (req, res) => {
     const query = 'INSERT INTO dishes (Name, Price, Ingredients, Image) VALUES (?, ?, ?, ?)';
     connection.query(query, [Name, Price, Ingredients, imagePath], (err, results) => {
         if (err) {
-            logger.error('Error creating dish:', err);
-            res.status(500).json({ error: 'Internal Server Error' });
-            return;
+            return next(err);
         }
         res.status(201).json({ message: 'Dish created', dishId: results.insertId, image: imagePath });
     });
 };
 
-const updateDish = (req, res) => {
+const updateDish = (req, res, next) => {
     const id = req.params.id;
     logger.log(`Update dish endpoint called for ID: ${id}`);
     
@@ -96,9 +89,7 @@ const updateDish = (req, res) => {
 
     connection.query(query, values, (err, results) => {
         if (err) {
-            logger.error('Error updating dish:', err);
-            res.status(500).json({ error: 'Internal Server Error' });
-            return;
+            return next(err);
         }
         if (results.affectedRows === 0) {
             res.status(404).json({ error: 'Dish not found' });
@@ -107,7 +98,7 @@ const updateDish = (req, res) => {
         res.json({ message: 'Dish updated successfully' });
     });
 };
-const deleteDish = (req, res) => {
+const deleteDish = (req, res, next) => {
     const id = req.params.id;
     logger.log(`Delete dish endpoint called for ID: ${id}`);
 
@@ -116,8 +107,7 @@ const deleteDish = (req, res) => {
 
     connection.query(selectQuery, [id], (err, results) => {
         if (err) {
-            logger.error('Error fetching dish for deletion:', err);
-            return res.status(500).json({ error: 'Internal Server Error' });
+            return next(err);
         }
 
         if (results.length === 0) {
@@ -130,8 +120,7 @@ const deleteDish = (req, res) => {
         const deleteQuery = 'DELETE FROM dishes WHERE DishID = ?';
         connection.query(deleteQuery, [id], (deleteErr, deleteResults) => {
             if (deleteErr) {
-                logger.error('Error deleting dish:', deleteErr);
-                return res.status(500).json({ error: 'Internal Server Error' });
+                return next(deleteErr);
             }
 
             // If DB delete successful, delete the file
