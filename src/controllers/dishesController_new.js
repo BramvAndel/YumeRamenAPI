@@ -129,7 +129,9 @@ const deleteDish = async (req, res, next) => {
   try {
     connection = await getConnection();
     const id = req.params.id;
-    logger.log(`Delete dish endpoint called for ID: ${id}`); // First, get the image path
+    logger.log(`Delete dish endpoint called for ID: ${id}`);
+
+    // First, get the image path
     const selectQuery = "SELECT Image FROM dishes WHERE DishID = ?";
     const [results] = await connection.query(selectQuery, [id]);
 
