@@ -2,33 +2,32 @@ const mysql = require("mysql2/promise");
 const logger = require("./utils/logger");
 const config = require("../config/config");
 
-let connection;
+let pool;
 
 const connectDb = async () => {
   try {
-    connection = await mysql.createConnection({
+    pool = await mysql.createPool({
       host: config.db.host,
       user: config.db.user,
       password: config.db.password,
       database: config.db.database,
+      waitForConnections: true,
+      connectionLimit: 10,
+      queueLimit: 0,
     });
-    logger.log(
-      "Successfully connected to the database as ID " + connection.threadId
-    );
-    return connection;
+    logger.log("Database pool created successfully with connection pooling");
+    return pool;
   } catch (error) {
-    logger.log("Error connecting to the database: " + error.stack);
+    logger.log("Error creating database pool: " + error.stack);
     throw error;
   }
 };
 
-const getConnection = () => {
-  if (!connection) {
-    throw new Error(
-      "Database connection not initialized. Call connectDb() first."
-    );
+const getConnection = async () => {
+  if (!pool) {
+    throw new Error("Database pool not initialized. Call connectDb() first.");
   }
-  return connection;
+  return await pool.getConnection();
 };
 
 module.exports = { getConnection, connectDb };

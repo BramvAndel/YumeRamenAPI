@@ -3,20 +3,24 @@ const logger = require("../utils/logger");
 const bcrypt = require("bcrypt");
 
 const getAllUsers = async (req, res, next) => {
+  let connection;
   try {
-    const connection = getConnection();
+    connection = await getConnection();
     logger.log("Get all users endpoint called");
     const query = "SELECT * FROM users";
     const [results] = await connection.query(query);
     res.json(results);
   } catch (error) {
     next(error);
+  } finally {
+    if (connection) await connection.release();
   }
 };
 
 const getUserById = async (req, res, next) => {
+  let connection;
   try {
-    const connection = getConnection();
+    connection = await getConnection();
     const id = req.params.id;
     logger.log(`Get user by ID endpoint called for ID: ${id}`);
 
@@ -30,12 +34,15 @@ const getUserById = async (req, res, next) => {
     res.json(results[0]);
   } catch (error) {
     next(error);
+  } finally {
+    if (connection) await connection.release();
   }
 };
 
 const createUser = async (req, res, next) => {
+  let connection;
   try {
-    const connection = getConnection();
+    connection = await getConnection();
     logger.log("Create user endpoint called");
     // Security: Don't allow setting 'role' from the body during public registration
     const { username, last_name, password, email, address, phone_number } =
@@ -66,12 +73,15 @@ const createUser = async (req, res, next) => {
     res.status(201).json({ message: "User created", userId: results.insertId });
   } catch (error) {
     next(error);
+  } finally {
+    if (connection) await connection.release();
   }
 };
 
 const deleteUser = async (req, res, next) => {
+  let connection;
   try {
-    const connection = getConnection();
+    connection = await getConnection();
     const id = req.params.id;
     logger.log(`Delete user endpoint called for ID: ${id}`);
 
@@ -84,12 +94,15 @@ const deleteUser = async (req, res, next) => {
     res.json({ message: "User deleted successfully" });
   } catch (error) {
     next(error);
+  } finally {
+    if (connection) await connection.release();
   }
 };
 
 const updateUser = async (req, res, next) => {
+  let connection;
   try {
-    const connection = getConnection();
+    connection = await getConnection();
     const id = req.params.id;
     logger.log(`Update user endpoint called for ID: ${id}`);
 
@@ -166,6 +179,8 @@ const updateUser = async (req, res, next) => {
     res.json({ message: "User updated successfully" });
   } catch (error) {
     next(error);
+  } finally {
+    if (connection) await connection.release();
   }
 };
 

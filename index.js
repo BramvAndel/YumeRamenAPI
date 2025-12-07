@@ -20,6 +20,8 @@ connectDb()
 
 // TODO: implement websockets for real-time features
 
+// possible websocket features:
+// - real-time order status updates
+
 // improvements:
-// - connection pooling for database
 // - service layer between controllers and db

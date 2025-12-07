@@ -2,8 +2,9 @@ const { getConnection } = require("../db");
 const logger = require("../utils/logger");
 
 const getAllOrders = async (req, res, next) => {
+  let connection;
   try {
-    const connection = getConnection();
+    connection = await getConnection();
     logger.log("Get all orders endpoint called");
 
     const query = `
@@ -39,12 +40,15 @@ const getAllOrders = async (req, res, next) => {
     res.json(Array.from(ordersMap.values()));
   } catch (error) {
     next(error);
+  } finally {
+    if (connection) await connection.release();
   }
 };
 
 const getOrderById = async (req, res, next) => {
+  let connection;
   try {
-    const connection = getConnection();
+    connection = await getConnection();
     const id = req.params.id;
     logger.log(`Get order by ID endpoint called for ID: ${id}`);
 
@@ -70,12 +74,15 @@ const getOrderById = async (req, res, next) => {
     res.json(order);
   } catch (error) {
     next(error);
+  } finally {
+    if (connection) await connection.release();
   }
 };
 
 const createOrder = async (req, res, next) => {
+  let connection;
   try {
-    const connection = getConnection();
+    connection = await getConnection();
     logger.log("Create order endpoint called");
     logger.log("User from token:", req.user); // Debug log
 
@@ -135,12 +142,15 @@ const createOrder = async (req, res, next) => {
     }
   } catch (error) {
     next(error);
+  } finally {
+    if (connection) await connection.release();
   }
 };
 
 const updateOrder = async (req, res, next) => {
+  let connection;
   try {
-    const connection = getConnection();
+    connection = await getConnection();
     const id = req.params.id;
     const { Status, Paid } = req.body;
 
@@ -186,12 +196,15 @@ const updateOrder = async (req, res, next) => {
     res.json({ message: "Order updated successfully" });
   } catch (error) {
     next(error);
+  } finally {
+    if (connection) await connection.release();
   }
 };
 
 const deleteOrder = async (req, res, next) => {
+  let connection;
   try {
-    const connection = getConnection();
+    const connection = await getConnection();
     const id = req.params.id;
     logger.log(`Delete order endpoint called for ID: ${id}`);
 
@@ -206,6 +219,8 @@ const deleteOrder = async (req, res, next) => {
     res.json({ message: "Order deleted successfully" });
   } catch (error) {
     next(error);
+  } finally {
+    if (connection) await connection.release();
   }
 };
 

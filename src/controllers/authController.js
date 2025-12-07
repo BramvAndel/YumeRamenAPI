@@ -5,8 +5,9 @@ const logger = require("../utils/logger");
 const config = require("../../config/config");
 
 const login = async (req, res, next) => {
+  let connection;
   try {
-    const connection = getConnection();
+    connection = await getConnection();
     const { email, password } = req.body;
 
     if (!email || !password) {
@@ -57,12 +58,15 @@ const login = async (req, res, next) => {
     });
   } catch (error) {
     next(error);
+  } finally {
+    if (connection) await connection.release();
   }
 };
 
 const refreshToken = async (req, res, next) => {
+  let connection;
   try {
-    const connection = getConnection();
+    connection = await getConnection();
     const { token } = req.body;
 
     if (!token) {
