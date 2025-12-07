@@ -11,8 +11,11 @@ const logger = require("./utils/logger");
 const { apiLimiter } = require("./middleware/rateLimiter");
 const errorHandler = require("./middleware/errorHandler");
 const config = require("../config/config");
+const helmet = require("helmet");
 
 const app = express();
+
+app.use(helmet());
 
 app.use(
   cors({
