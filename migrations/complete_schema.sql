@@ -48,5 +48,14 @@ CREATE TABLE IF NOT EXISTS order_items (
     FOREIGN KEY (dishID) REFERENCES dishes(DishID) ON DELETE CASCADE
 );
 
+-- 5. Refresh Tokens Table
+CREATE TABLE IF NOT EXISTS refresh_tokens (
+    token VARCHAR(255) PRIMARY KEY,
+    userID INT(11) NOT NULL,
+    expires_at DATETIME NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (userID) REFERENCES users(userID) ON DELETE CASCADE
+);
+
 -- Optional: Insert a default admin user if you want to start fresh
 -- INSERT INTO users (username, password, email, address) VALUES ('admin', 'admin123', 'admin@ramennoodles.com', '123 Noodle St');
