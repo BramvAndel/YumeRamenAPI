@@ -22,7 +22,4 @@ app.listen(PORT, () => {
 // - service layer between controllers and db
 // - promise-based db queries
 // - centrelized config
-// - centralized error handling middleware
-// - custom error classes
 // - use security headers with helmet
-// - 
