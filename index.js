@@ -23,5 +23,3 @@ connectDb()
 // improvements:
 // - connection pooling for database
 // - service layer between controllers and db
-// - centrelized config
-// - use security headers with helmet
