@@ -1,22 +1,34 @@
-const mysql = require('mysql2');
-require('dotenv').config();
-const logger = require('./utils/logger');
+const mysql = require("mysql2/promise");
+const logger = require("./utils/logger");
+const config = require("../config/config");
 
-const connection = mysql.createConnection({
-    host: process.env.DB_HOST || 'localhost',
-    user: process.env.DB_USER || 'root',
-    password: process.env.DB_PASSWORD || '',
-    database: process.env.DB_NAME || 'test'
-});
+let connection;
 
-const connectDb = () => {
-    connection.connect((err) => {
-        if (err) {
-            logger.log('Error connecting to the database: ' + err.stack);
-            return;
-        }
-        logger.log('Successfully connected to the database as ID ' + connection.threadId);
+const connectDb = async () => {
+  try {
+    connection = await mysql.createConnection({
+      host: config.db.host,
+      user: config.db.user,
+      password: config.db.password,
+      database: config.db.database,
     });
+    logger.log(
+      "Successfully connected to the database as ID " + connection.threadId
+    );
+    return connection;
+  } catch (error) {
+    logger.log("Error connecting to the database: " + error.stack);
+    throw error;
+  }
 };
 
-module.exports = { connection, connectDb };
+const getConnection = () => {
+  if (!connection) {
+    throw new Error(
+      "Database connection not initialized. Call connectDb() first."
+    );
+  }
+  return connection;
+};
+
+module.exports = { getConnection, connectDb };

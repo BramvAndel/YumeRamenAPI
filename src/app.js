@@ -1,15 +1,16 @@
 const express = require("express");
 const cors = require("cors");
-const path = require('path');
-const orderRoutes = require('./routes/orders');
-const dishesRoutes = require('./routes/dishes');
-const userRoutes = require('./routes/user');
-const authRoutes = require('./routes/auth');
-const swaggerUi = require('swagger-ui-express');
-const swaggerJsdoc = require('swagger-jsdoc');
-const logger = require('./utils/logger');
-const { apiLimiter } = require('./middleware/rateLimiter');
-const errorHandler = require('./middleware/errorHandler');
+const path = require("path");
+const orderRoutes = require("./routes/orders");
+const dishesRoutes = require("./routes/dishes");
+const userRoutes = require("./routes/user");
+const authRoutes = require("./routes/auth");
+const swaggerUi = require("swagger-ui-express");
+const swaggerJsdoc = require("swagger-jsdoc");
+const logger = require("./utils/logger");
+const { apiLimiter } = require("./middleware/rateLimiter");
+const errorHandler = require("./middleware/errorHandler");
+const config = require("../config/config");
 
 const app = express();
 
@@ -22,31 +23,31 @@ app.use(
 );
 
 app.use(express.json());
-    
-const prefix = `/api/${process.env.VERSION}`;
+
+const prefix = `/api/${config.version}`;
 
 // Apply global rate limiter to all API routes
 app.use(prefix, apiLimiter);
 
 const swaggerOptions = {
   definition: {
-    openapi: '3.0.0',
+    openapi: "3.0.0",
     info: {
-      title: 'Yume Ramen Noodles API',
-      version: '1.0.0',
-      description: 'API documentation for Yume Ramen Noodles'
+      title: "Yume Ramen Noodles API",
+      version: "1.0.0",
+      description: "API documentation for Yume Ramen Noodles",
     },
     servers: [
       {
-        url: `http://localhost:${process.env.PORT || 3000}/api/${process.env.VERSION}`,
-      }
+        url: `http://localhost:${config.port}/api/${config.version}`,
+      },
     ],
     components: {
       securitySchemes: {
         bearerAuth: {
-          type: 'http',
-          scheme: 'bearer',
-          bearerFormat: 'JWT',
+          type: "http",
+          scheme: "bearer",
+          bearerFormat: "JWT",
         },
       },
     },
@@ -56,19 +57,18 @@ const swaggerOptions = {
       },
     ],
   },
-  apis: ['./src/routes/*.js'],
+  apis: ["./src/routes/*.js"],
 };
 
 const swaggerSpecs = swaggerJsdoc(swaggerOptions);
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
-
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
 
 // Serve uploaded files statically
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
 // Health Check Endpoint
 app.get(`${prefix}/health`, (req, res) => {
-  res.send('API is healthy');
+  res.send("API is healthy");
 });
 
 app.use(`${prefix}/orders`, orderRoutes);
