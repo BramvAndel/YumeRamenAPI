@@ -19,7 +19,7 @@ app.use(helmet());
 
 app.use(
   cors({
-    origin: "*",
+    origin: ["http://localhost:5500", "http://127.0.0.1:5500", "*"],
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
@@ -66,7 +66,12 @@ const swaggerOptions = {
 const swaggerSpecs = swaggerJsdoc(swaggerOptions);
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
 
-// Serve uploaded files statically
+// Serve uploaded files as CDN with cross-origin policy
+app.use("/uploads", (req, res, next) => {
+  res.header("Cross-Origin-Resource-Policy", "cross-origin");
+  next();
+});
+
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
 // Health Check Endpoint

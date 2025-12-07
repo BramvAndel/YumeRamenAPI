@@ -22,6 +22,7 @@ connectDb()
 
 // possible websocket features:
 // - real-time order status updates
+// - real-time order recieved notifications (when a client places an order, show the order on the dashboard in real-time)
 
 // improvements:
 // - service layer between controllers and db
