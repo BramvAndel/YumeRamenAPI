@@ -49,10 +49,28 @@ const login = async (req, res, next) => {
       "INSERT INTO refresh_tokens (token, userID, expires_at) VALUES (?, ?, ?)";
     await connection.query(insertQuery, [refreshToken, user.userID, expiresAt]);
 
+    // Set secure HTTP-only cookies
+    const isProduction = process.env.NODE_ENV === "production";
+    res.cookie("accessToken", accessToken, {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: "lax",
+      path: "/",
+      domain: "localhost",
+      maxAge: 15 * 60 * 1000, // 15 minutes
+    });
+
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: "lax",
+      path: "/",
+      domain: "localhost",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+
     res.json({
       message: "Login successful",
-      accessToken,
-      refreshToken,
       userId: user.userID,
       role: user.role,
     });
@@ -67,7 +85,7 @@ const refreshToken = async (req, res, next) => {
   let connection;
   try {
     connection = await getConnection();
-    const { token } = req.body;
+    const token = req.cookies?.refreshToken;
 
     if (!token) {
       return res.status(401).json({ error: "Refresh Token Required" });
@@ -93,7 +111,17 @@ const refreshToken = async (req, res, next) => {
       { expiresIn: "15m" }
     );
 
-    res.json({ accessToken });
+    // Set new access token cookie
+    res.cookie("accessToken", accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      domain: "localhost",
+      maxAge: 15 * 60 * 1000, // 15 minutes
+    });
+
+    res.json({ message: "Token refreshed successfully" });
   } catch (error) {
     if (
       error.name === "JsonWebTokenError" ||
@@ -107,8 +135,8 @@ const refreshToken = async (req, res, next) => {
 
 const logout = async (req, res, next) => {
   try {
-    const connection = getConnection();
-    const { token } = req.body;
+    const connection = await getConnection();
+    const token = req.cookies?.refreshToken;
 
     if (!token) {
       return res.status(400).json({ error: "Token required" });
@@ -116,6 +144,23 @@ const logout = async (req, res, next) => {
 
     const query = "DELETE FROM refresh_tokens WHERE token = ?";
     await connection.query(query, [token]);
+
+    // Clear cookies
+    res.clearCookie("accessToken", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      domain: "localhost",
+    });
+    res.clearCookie("refreshToken", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      domain: "localhost",
+    });
+
     res.json({ message: "Logged out successfully" });
   } catch (error) {
     next(error);

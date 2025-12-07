@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const cookieParser = require("cookie-parser");
 const path = require("path");
 const orderRoutes = require("./routes/orders");
 const dishesRoutes = require("./routes/dishes");
@@ -17,15 +18,36 @@ const app = express();
 
 app.use(helmet());
 
-app.use(
-  cors({
-    // origin: ["http://localhost:5500", "http://127.0.0.1:5500", "*"],
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  })
-);
+// Define allowed origins
+const allowedOrigins = [
+  "http://localhost:5500",
+  "http://127.0.0.1:5500",
+  "http://localhost:3000",
+  "http://127.0.0.1:3000",
+  process.env.FRONTEND_URL || "http://localhost:3000",
+];
+
+// Custom CORS middleware that properly handles credentials
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true, // Allow cookies to be sent/received
+  maxAge: 86400, // 24 hours
+};
+
+// Usage in your app.js:
+app.use(cors(corsOptions));
 
 app.use(express.json());
+app.use(cookieParser());
 
 const prefix = `/api/${config.version}`;
 
