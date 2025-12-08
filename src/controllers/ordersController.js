@@ -1,5 +1,6 @@
 const { getConnection } = require("../db");
 const logger = require("../utils/logger");
+const { isValidQuantity } = require("../utils/validation");
 
 const getAllOrders = async (req, res, next) => {
   let connection;
@@ -102,6 +103,14 @@ const createOrder = async (req, res, next) => {
       return res
         .status(400)
         .json({ error: "Order must contain at least one item" });
+    }
+
+    for (const item of items) {
+      if (!isValidQuantity(item.quantity)) {
+        return res
+          .status(400)
+          .json({ error: `Invalid quantity for dishID ${item.dishID}` });
+      }
     }
 
     // Start transaction

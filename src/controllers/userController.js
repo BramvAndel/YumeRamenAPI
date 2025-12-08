@@ -1,6 +1,7 @@
 const { getConnection } = require("../db");
 const logger = require("../utils/logger");
 const bcrypt = require("bcrypt");
+const { isValidEmail, isValidPhoneNumber } = require("../utils/validation");
 
 const getAllUsers = async (req, res, next) => {
   let connection;
@@ -52,6 +53,14 @@ const createUser = async (req, res, next) => {
       return res
         .status(400)
         .json({ error: "Username, password, and email are required" });
+    }
+
+    if (!isValidEmail(email)) {
+      return res.status(400).json({ error: "Invalid email format" });
+    }
+
+    if (phone_number && !isValidPhoneNumber(phone_number)) {
+      return res.status(400).json({ error: "Invalid phone number format" });
     }
 
     const saltRounds = 10;
@@ -143,11 +152,15 @@ const updateUser = async (req, res, next) => {
       values.push(last_name);
     }
     if (password !== undefined) {
-      // Note: In a real app, you should hash the password here too if it's being updated
+      const saltRounds = 10;
+      const hash = await bcrypt.hash(password, saltRounds);
       fields.push("password = ?");
-      values.push(password);
+      values.push(hash);
     }
     if (email !== undefined) {
+      if (!isValidEmail(email)) {
+        return res.status(400).json({ error: "Invalid email format" });
+      }
       fields.push("email = ?");
       values.push(email);
     }
@@ -156,6 +169,9 @@ const updateUser = async (req, res, next) => {
       values.push(address);
     }
     if (phone_number !== undefined) {
+      if (!isValidPhoneNumber(phone_number)) {
+        return res.status(400).json({ error: "Invalid phone number format" });
+      }
       fields.push("phone_number = ?");
       values.push(phone_number);
     }

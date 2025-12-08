@@ -3,6 +3,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const logger = require("../utils/logger");
 const config = require("../../config/config");
+const { isValidEmail } = require("../utils/validation");
 
 const login = async (req, res, next) => {
   let connection;
@@ -12,6 +13,10 @@ const login = async (req, res, next) => {
 
     if (!email || !password) {
       return res.status(400).json({ error: "Email and password are required" });
+    }
+
+    if (!isValidEmail(email)) {
+      return res.status(400).json({ error: "Invalid email format" });
     }
 
     const query = "SELECT * FROM users WHERE email = ?";
@@ -115,7 +120,6 @@ const refreshToken = async (req, res, next) => {
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       path: "/",
-      domain: "localhost",
       maxAge: 15 * 60 * 1000, // 15 minutes
     });
 

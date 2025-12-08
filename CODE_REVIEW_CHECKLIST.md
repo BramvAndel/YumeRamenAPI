@@ -9,27 +9,27 @@
 
 ### Security Vulnerabilities
 
-- [ ] **1.1** Fix password hashing on update in `src/controllers/userController.js` (lines 141-143)
+- [x] **1.1** Fix password hashing on update in `src/controllers/userController.js` (lines 141-143)
 
   - Currently storing plain text passwords when updating
   - Must hash password with bcrypt before storing
 
-- [ ] **1.2** Remove hardcoded cookie domain from `src/controllers/authController.js`
+- [x] **1.2** Remove hardcoded cookie domain from `src/controllers/authController.js`
 
   - Remove `domain: "localhost"` from lines 59, 67, 117, 151, 157
   - Will break in production and with 127.0.0.1
 
-- [ ] **1.3** Add environment variable validation in `config/config.js`
+- [x] **1.3** Add environment variable validation in `config/config.js`
 
   - Validate JWT_SECRET and REFRESH_TOKEN_SECRET exist
   - Exit with error if critical variables are missing
 
-- [ ] **1.4** Fix weak rate limiting for authentication
+- [x] **1.4** Fix weak rate limiting for authentication
 
   - Fix typo: `autAmount` → `authAmount` in `config/config.js` line 24
   - Reduce auth attempts from 5 to 3 for better brute force protection
 
-- [ ] **1.5** Add input validation across all controllers
+- [x] **1.5** Add input validation across all controllers
   - Validate email format in user creation/updates
   - Validate phone numbers, price values, quantities
   - Prevent invalid data insertion into database
