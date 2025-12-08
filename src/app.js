@@ -1,4 +1,5 @@
 const express = require("express");
+const morgan = require("morgan");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const path = require("path");
@@ -13,8 +14,16 @@ const { apiLimiter } = require("./middleware/rateLimiter");
 const errorHandler = require("./middleware/errorHandler");
 const config = require("../config/config");
 const helmet = require("helmet");
+const { getConnection } = require("./db");
 
 const app = express();
+
+// HTTP request logging
+if (process.env.NODE_ENV === "production") {
+  app.use(morgan("combined")); // Standard Apache format for production
+} else {
+  app.use(morgan("dev")); // Concise colored output for development
+}
 
 app.use(helmet());
 
@@ -94,8 +103,32 @@ app.use("/uploads", (req, res, next) => {
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
 // Health Check Endpoint
-app.get(`${prefix}/health`, (req, res) => {
-  res.send("API is healthy");
+const startTime = Date.now();
+
+app.get(`${prefix}/health`, async (req, res) => {
+  let dbStatus = "unknown";
+  let dbError = null;
+  try {
+    const connection = await getConnection();
+    await connection.ping();
+    await connection.release();
+    dbStatus = "up";
+  } catch (err) {
+    dbStatus = "down";
+    dbError = err.message;
+  }
+
+  const uptimeSeconds = Math.floor((Date.now() - startTime) / 1000);
+  const statusCode = dbStatus === "up" ? 200 : 503;
+  res.status(statusCode).json({
+    status: "ok",
+    uptime: uptimeSeconds,
+    db: {
+      status: dbStatus,
+      error: dbError,
+    },
+    timestamp: new Date().toISOString(),
+  });
 });
 
 app.use(`${prefix}/orders`, orderRoutes);

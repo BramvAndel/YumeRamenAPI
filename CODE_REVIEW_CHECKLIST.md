@@ -187,12 +187,12 @@
 
 ### Code Style & Conventions
 
-- [ ] **8.1** Standardize string quote usage
+- [x] **8.1** Standardize string quote usage
 
   - Choose single or double quotes
   - Apply consistently throughout codebase
 
-- [ ] **8.2** Fix missing trailing semicolons
+- [x] **8.2** Fix missing trailing semicolons
 
   - Add semicolon to `src/utils/logger.js` line 9
   - Check for other missing semicolons
@@ -202,20 +202,20 @@
   - Create issue for websockets implementation from `index.js` line 21
   - Remove TODO from code
 
-- [ ] **8.4** Remove unused imports
+- [x] **8.4** Remove unused imports
   - Review all imports for usage
   - Remove unused `path` imports where applicable
 
 ### Documentation Issues
 
-- [ ] **9.1** Update README.md
+- [x] **9.1** Update README.md
 
   - Add JWT_SECRET and REFRESH_TOKEN_SECRET to env setup section
   - Add authentication flow documentation
   - Document refresh token mechanism
   - Remove reference to non-existent `PATCH /orders/:id/status` endpoint
 
-- [ ] **9.2** Add API request/response examples
+- [x] **9.2** Add API request/response examples
   - Add example requests for complex operations (order creation)
   - Add example responses with all fields
   - Include error response examples
@@ -233,19 +233,21 @@
   - Add indexes for foreign keys (UserID, DishID)
   - Add indexes for frequently queried fields (email, Status)
 
+- [x] **10.2** Add database indexing guidance
+
 - [ ] **10.3** Add pagination to all `getAll*` endpoints
 
   - Implement limit and offset parameters
   - Add pagination metadata to responses (total, page, per_page)
   - Default to reasonable page size (e.g., 50)
 
-- [ ] **10.4** Review connection pool settings in `src/db.js` line 14
+- [x] **10.4** Review connection pool settings in `src/db.js` line 14
   - Increase `connectionLimit` for production (consider 50-100)
   - Make configurable via environment variable
 
 ### DevOps & Production Readiness
 
-- [ ] **11.1** Enhance health check endpoint in `src/app.js` line 99
+- [x] **11.1** Enhance health check endpoint in `src/app.js` line 99
 
   - Add database connectivity check
   - Return detailed status (DB status, uptime, etc.)
@@ -263,13 +265,13 @@
   - Support comma-separated list of origins
   - Document in .env.example
 
-- [ ] **11.4** Add HTTP request logging middleware
+- [x] **11.4** Add HTTP request logging middleware
 
   - Install and configure morgan or similar
   - Log requests in production-friendly format
   - Include request ID for tracking
 
-- [ ] **11.5** Fix uploads directory in `.gitignore`
+- [x] **11.5** Fix uploads directory in `.gitignore`
   - Change `uploads/` to `uploads/*`
   - Add `!uploads/.gitkeep` to preserve directory structure
   - Ensure directory exists in fresh clones
