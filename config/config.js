@@ -16,12 +16,14 @@ try {
       jwtSecret: process.env.JWT_SECRET,
       jwtAccessTokenExpoTime: 15 * 60 * 1000, // 15 min
       jwtRefreshTokenExpoTime: 7 * 24 * 60 * 60 * 1000, // 7 days
+      JWT_SECRET: process.env.JWT_SECRET,
+      REFRESH_TOKEN_SECRET: process.env.REFRESH_TOKEN_SECRET,
     },
     refreshTokenSecret: process.env.REFRESH_TOKEN_SECRET,
     rateLimit: {
       windowAmount: 1000,
       windowMs: 15 * 60 * 1000, // 15 min
-      authAmount: 5,
+      authAmount: 3,
       authTime: 15 * 60 * 1000, // min
     },
   };

@@ -2,6 +2,7 @@ const { getConnection } = require("../db");
 const fs = require("fs");
 const path = require("path");
 const logger = require("../utils/logger");
+const { isValidPrice } = require("../utils/validation");
 
 const getAllDishes = async (req, res, next) => {
   let connection;
@@ -55,6 +56,10 @@ const createDish = async (req, res, next) => {
         .json({ error: "Name, Price and Ingredients are required" });
     }
 
+    if (!isValidPrice(Price)) {
+      return res.status(400).json({ error: "Invalid price format" });
+    }
+
     const query =
       "INSERT INTO dishes (Name, Price, Ingredients, Image) VALUES (?, ?, ?, ?)";
     const [results] = await connection.query(query, [
@@ -93,6 +98,9 @@ const updateDish = async (req, res, next) => {
       values.push(Name);
     }
     if (Price !== undefined) {
+      if (!isValidPrice(Price)) {
+        return res.status(400).json({ error: "Invalid price format" });
+      }
       fields.push("Price = ?");
       values.push(Price);
     }
