@@ -12,9 +12,18 @@ try {
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
     },
-    jwtSecret: process.env.JWT_SECRET,
+    jwt: {
+      jwtSecret: process.env.JWT_SECRET,
+      jwtAccessTokenExpoTime: 15 * 60 * 1000, // 15 min
+      jwtRefreshTokenExpoTime: 7 * 24 * 60 * 60 * 1000, // 7 days
+    },
     refreshTokenSecret: process.env.REFRESH_TOKEN_SECRET,
-    version: process.env.VERSION,
+    rateLimit: {
+      windowAmount: 1000,
+      windowMs: 15 * 60 * 1000, // 15 min
+      authAmount: 5,
+      authTime: 15 * 60 * 1000, // min
+    },
   };
   logger.log("Configuration loaded successfully");
 } catch (error) {

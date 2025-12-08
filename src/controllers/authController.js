@@ -56,8 +56,7 @@ const login = async (req, res, next) => {
       secure: isProduction,
       sameSite: "lax",
       path: "/",
-      domain: "localhost",
-      maxAge: 15 * 60 * 1000, // 15 minutes
+      maxAge: config.jwt.jwtAccesTokenExpoTime,
     });
 
     res.cookie("refreshToken", refreshToken, {
@@ -65,8 +64,7 @@ const login = async (req, res, next) => {
       secure: isProduction,
       sameSite: "lax",
       path: "/",
-      domain: "localhost",
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      maxAge: config.jwt.jwtRefreshTokenExpoTime, // 7 days
     });
 
     res.json({
@@ -151,14 +149,12 @@ const logout = async (req, res, next) => {
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       path: "/",
-      domain: "localhost",
     });
     res.clearCookie("refreshToken", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       path: "/",
-      domain: "localhost",
     });
 
     res.json({ message: "Logged out successfully" });

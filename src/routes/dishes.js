@@ -1,9 +1,9 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const dishesController = require('../controllers/dishesController');
-const upload = require('../middleware/upload');
-const authenticateToken = require('../middleware/authMiddleware');
-const authorizeRoles = require('../middleware/roleMiddleware');
+const dishesController = require("../controllers/dishesController");
+const upload = require("../middleware/upload");
+const authenticateToken = require("../middleware/authMiddleware");
+const authorizeRoles = require("../middleware/roleMiddleware");
 
 /**
  * @swagger
@@ -65,7 +65,7 @@ const authorizeRoles = require('../middleware/roleMiddleware');
  *       500:
  *         description: Internal Server Error
  */
-router.get('/', dishesController.getAllDishes);
+router.get("/", dishesController.getAllDishes);
 
 /**
  * @swagger
@@ -92,7 +92,7 @@ router.get('/', dishesController.getAllDishes);
  *       500:
  *         description: Internal Server Error
  */
-router.get('/:id', dishesController.getDishById);
+router.get("/:id", dishesController.getDishById);
 
 /**
  * @swagger
@@ -136,7 +136,13 @@ router.get('/:id', dishesController.getDishById);
  *       500:
  *         description: Internal Server Error
  */
-router.post('/', authenticateToken, authorizeRoles('admin'), upload.single('image'), dishesController.createDish);
+router.post(
+  "/",
+  authenticateToken,
+  authorizeRoles("admin"),
+  upload.single("image"),
+  dishesController.createDish
+);
 
 /**
  * @swagger
@@ -179,7 +185,13 @@ router.post('/', authenticateToken, authorizeRoles('admin'), upload.single('imag
  *       500:
  *         description: Internal Server Error
  */
-router.put('/:id', authenticateToken, authorizeRoles('admin'), upload.single('image'), dishesController.updateDish);
+router.put(
+  "/:id",
+  authenticateToken,
+  authorizeRoles("admin"),
+  upload.single("image"),
+  dishesController.updateDish
+);
 
 /**
  * @swagger
@@ -205,6 +217,11 @@ router.put('/:id', authenticateToken, authorizeRoles('admin'), upload.single('im
  *       500:
  *         description: Internal Server Error
  */
-router.delete('/:id', authenticateToken, authorizeRoles('admin'), dishesController.deleteDish);
+router.delete(
+  "/:id",
+  authenticateToken,
+  authorizeRoles("admin"),
+  dishesController.deleteDish
+);
 
 module.exports = router;

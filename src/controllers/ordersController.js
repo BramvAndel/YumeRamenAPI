@@ -84,7 +84,6 @@ const createOrder = async (req, res, next) => {
   try {
     connection = await getConnection();
     logger.log("Create order endpoint called");
-    logger.log("User from token:", req.user); // Debug log
 
     // Use the authenticated user's ID
     const userID = req.user.userId;

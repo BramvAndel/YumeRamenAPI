@@ -1,7 +1,7 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const authController = require('../controllers/authController');
-const { authLimiter } = require('../middleware/rateLimiter');
+const authController = require("../controllers/authController");
+const { authLimiter } = require("../middleware/rateLimiter");
 
 /**
  * @swagger
@@ -53,7 +53,7 @@ const { authLimiter } = require('../middleware/rateLimiter');
  *       500:
  *         description: Internal server error
  */
-router.post('/login', authLimiter, authController.login);
+router.post("/login", authLimiter, authController.login);
 
 /**
  * @swagger
@@ -88,7 +88,7 @@ router.post('/login', authLimiter, authController.login);
  *       403:
  *         description: Invalid or revoked refresh token
  */
-router.post('/refresh', authController.refreshToken);
+router.post("/refresh", authController.refreshToken);
 
 /**
  * @swagger
@@ -114,6 +114,6 @@ router.post('/refresh', authController.refreshToken);
  *       500:
  *         description: Internal server error
  */
-router.post('/logout', authController.logout);
+router.post("/logout", authController.logout);
 
 module.exports = router;

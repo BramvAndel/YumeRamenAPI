@@ -51,7 +51,7 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(cookieParser());
 
-const prefix = `/api/${config.version}`;
+const prefix = `/api/v1`;
 
 // Apply global rate limiter to all API routes
 app.use(prefix, apiLimiter);
@@ -66,7 +66,7 @@ const swaggerOptions = {
     },
     servers: [
       {
-        url: `http://localhost:${config.port}/api/${config.version}`,
+        url: `http://localhost:${config.port}${prefix}`,
       },
     ],
     components: {
@@ -90,7 +90,6 @@ const swaggerOptions = {
 const swaggerSpecs = swaggerJsdoc(swaggerOptions);
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
 
-// Serve uploaded files as CDN with cross-origin policy
 app.use("/uploads", (req, res, next) => {
   res.header("Cross-Origin-Resource-Policy", "cross-origin");
   next();

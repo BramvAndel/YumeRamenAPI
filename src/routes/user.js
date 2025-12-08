@@ -1,10 +1,10 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const authenticateToken = require('../middleware/authMiddleware');
-const ensureOwnerOrAdmin = require('../middleware/ownerMiddleware');
-const authorizeRoles = require('../middleware/roleMiddleware');
+const authenticateToken = require("../middleware/authMiddleware");
+const ensureOwnerOrAdmin = require("../middleware/ownerMiddleware");
+const authorizeRoles = require("../middleware/roleMiddleware");
 
-const userController = require('../controllers/userController');
+const userController = require("../controllers/userController");
 
 /**
  * @swagger
@@ -85,7 +85,12 @@ const userController = require('../controllers/userController');
  *       500:
  *         description: Internal Server Error
  */
-router.get('/', authenticateToken, authorizeRoles('admin'), userController.getAllUsers);
+router.get(
+  "/",
+  authenticateToken,
+  authorizeRoles("admin"),
+  userController.getAllUsers
+);
 
 /**
  * @swagger
@@ -114,7 +119,7 @@ router.get('/', authenticateToken, authorizeRoles('admin'), userController.getAl
  *       500:
  *         description: Internal Server Error
  */
-router.get('/:id', authenticateToken, userController.getUserById);
+router.get("/:id", authenticateToken, userController.getUserById);
 
 /**
  * @swagger
@@ -157,7 +162,7 @@ router.get('/:id', authenticateToken, userController.getUserById);
  *       500:
  *         description: Internal Server Error
  */
-router.post('/', userController.createUser);
+router.post("/", userController.createUser);
 
 /**
  * @swagger
@@ -183,7 +188,12 @@ router.post('/', userController.createUser);
  *       500:
  *         description: Internal Server Error
  */
-router.delete('/:id', authenticateToken, ensureOwnerOrAdmin, userController.deleteUser);
+router.delete(
+  "/:id",
+  authenticateToken,
+  ensureOwnerOrAdmin,
+  userController.deleteUser
+);
 
 /**
  * @swagger
@@ -228,6 +238,11 @@ router.delete('/:id', authenticateToken, ensureOwnerOrAdmin, userController.dele
  *       500:
  *         description: Internal Server Error
  */
-router.put('/:id', authenticateToken, ensureOwnerOrAdmin, userController.updateUser);
+router.put(
+  "/:id",
+  authenticateToken,
+  ensureOwnerOrAdmin,
+  userController.updateUser
+);
 
 module.exports = router;
