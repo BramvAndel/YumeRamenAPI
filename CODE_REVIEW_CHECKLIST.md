@@ -40,66 +40,65 @@
 
 ### Configuration & Environment Issues
 
-- [ ] **2.1** Fix inconsistent JWT secret usage in `src/middleware/authMiddleware.js` line 12
+- [x] **2.1** Fix inconsistent JWT secret usage in `src/middleware/authMiddleware.js` line 12
 
   - Remove redundant fallback: `process.env.JWT_SECRET || config.jwtSecret`
   - Use config consistently throughout codebase
 
-- [ ] **2.2** Fix config structure inconsistency in `config/config.js`
+- [x] **2.2** Fix config structure inconsistency in `config/config.js`
 
   - Restructure: either use `config.jwt.jwtSecret` everywhere or flatten to `config.jwtSecret`
   - Update all references to match chosen structure
 
-- [ ] **2.3** Fix unused JWT expiration time constants in `config/config.js`
+- [x] **2.3** Fix unused JWT expiration time constants in `config/config.js`
 
   - Use `jwtAccessTokenExpoTime` and `jwtRefreshTokenExpoTime` or remove them
   - Fix typo: `jwtAccesTokenExpoTime` → `jwtAccessTokenExpoTime`
 
-- [ ] **2.4** Add missing environment variables to `.env.example`
+- [x] **2.4** Add missing environment variables to `.env.example`
 
   - Add JWT_SECRET
   - Add REFRESH_TOKEN_SECRET
-  - Add NODE_ENV
 
-- [ ] **2.5** Fix rate limit config typo in `config/config.js` line 24
+- [x] **2.5** Fix rate limit config typo in `config/config.js` line 24
   - Change `autAmount: 5` to `authAmount: 5`
 
 ### Database & Data Integrity Issues
 
-- [ ] **3.1** Fix connection release issue in `src/controllers/ordersController.js` line 226
+- [x] **3.1** Fix connection release issue in `src/controllers/ordersController.js` line 226
 
   - Remove duplicate connection declaration
   - Ensure proper connection release in finally block
 
-- [ ] **3.2** Add transaction handling for file deletions in `src/controllers/dishesController.js`
+- [x] **3.2** Add transaction handling for file deletions in `src/controllers/dishesController.js`
 
   - Delete file first, then database record
   - Or use transaction to ensure consistency
 
-- [ ] **3.3** Add cascade delete handling
+- [x] **3.3** Add cascade delete handling
 
   - Check for related orders before deleting users
   - Check for related order_items before deleting dishes
   - Return appropriate error messages
 
-- [ ] **3.4** Add dish existence validation in `src/controllers/ordersController.js` (createOrder)
+- [x] **3.4** Add dish existence validation in `src/controllers/ordersController.js` (createOrder)
   - Verify all dishIDs exist before creating order
   - Return error if dish not found
 
 ### Error Handling Issues
 
-- [ ] **4.1** Fix inconsistent error logging in `src/middleware/authMiddleware.js` line 16
+- [x] **4.1** Fix inconsistent error logging in `src/middleware/authMiddleware.js` line 16
 
   - Replace `console.error` with `logger.error`
   - Maintain logging consistency
 
-- [ ] **4.2** Improve error messages across controllers
+- [x] **4.2** Improve error messages across controllers
 
   - Don't expose database errors to clients
   - Return generic "Internal server error" messages
   - Log detailed errors server-side only
 
-- [ ] **4.3** Enhance logger with error context in `src/utils/logger.js`
+- [x] **4.3** Enhance logger with error context in `src/utils/logger.js`
   - Include stack traces in error logs
   - Add additional context (user ID, request ID, etc.)
 

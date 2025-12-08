@@ -14,7 +14,7 @@ const authenticateToken = (req, res, next) => {
 
   jwt.verify(token, jwtSecret, (err, user) => {
     if (err) {
-      logger.error("Token verification error:", err.message);
+      logger.error("Token verification error", { message: err.message, stack: err.stack });
       return res.status(403).json({ error: "Invalid token." });
     }
     req.user = user;

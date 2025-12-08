@@ -113,6 +113,24 @@ const createOrder = async (req, res, next) => {
       }
     }
 
+    // Validate that all dishes exist
+    const uniqueDishIds = [
+      ...new Set(items.map((item) => parseInt(item.dishID))),
+    ];
+
+    const checkDishesQuery = "SELECT DishID FROM dishes WHERE DishID IN (?)";
+    const [existingDishes] = await connection.query(checkDishesQuery, [
+      uniqueDishIds,
+    ]);
+
+    if (existingDishes.length !== uniqueDishIds.length) {
+      const foundIds = existingDishes.map((d) => d.DishID);
+      const missingIds = uniqueDishIds.filter((id) => !foundIds.includes(id));
+      return res
+        .status(400)
+        .json({ error: `Dishes not found: ${missingIds.join(", ")}` });
+    }
+
     // Start transaction
     await connection.beginTransaction();
 
@@ -231,7 +249,7 @@ const updateOrder = async (req, res, next) => {
 const deleteOrder = async (req, res, next) => {
   let connection;
   try {
-    const connection = await getConnection();
+    connection = await getConnection();
     const id = req.params.id;
     logger.log(`Delete order endpoint called for ID: ${id}`);
 
