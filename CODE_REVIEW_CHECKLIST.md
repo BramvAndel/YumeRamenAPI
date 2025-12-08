@@ -222,12 +222,12 @@
 
 ### Performance & Optimization
 
-- [ ] **10.1** Optimize N+1 queries in `src/controllers/ordersController.js` (getAllOrders)
+- [x] **10.1** Optimize N+1 queries in `src/controllers/ordersController.js` (getAllOrders)
 
   - Review JOIN queries for efficiency
   - Consider eager loading strategies
 
-- [ ] **10.2** Add database indexing guidance
+- [x] **10.2** Add database indexing guidance
 
   - Document recommended indexes in migration files
   - Add indexes for foreign keys (UserID, DishID)
