@@ -1,5 +1,6 @@
 const logger = require("../utils/logger");
 const ordersService = require("../services/ordersService");
+const { emitOrderStatusUpdate, emitNewOrder } = require("../websocket");
 
 /**
  * Retrieves all orders with their associated items and dish details
@@ -91,6 +92,15 @@ const createOrder = async (req, res, next) => {
       paid,
     });
 
+    // Emit real-time event for new order
+    emitNewOrder({
+      orderId,
+      userID,
+      items,
+      delivery_address,
+      paid,
+    });
+
     res.status(201).json({ message: "Order created", orderId });
   } catch (error) {
     if (
@@ -131,6 +141,11 @@ const updateOrder = async (req, res, next) => {
     logger.log(`Update order endpoint called for ID: ${id}`);
 
     await ordersService.updateOrder(id, { Status, Paid });
+
+    // Emit real-time event for order status update
+    if (Status) {
+      emitOrderStatusUpdate(id, Status);
+    }
 
     res.json({ message: "Order updated successfully" });
   } catch (error) {

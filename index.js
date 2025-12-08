@@ -2,6 +2,8 @@ const app = require("./src/app");
 const { connectDb } = require("./src/db");
 const logger = require("./src/utils/logger");
 const config = require("./config/config");
+const { initWebSocket } = require("./src/websocket");
+const http = require("http");
 
 const PORT = config.port;
 
@@ -9,7 +11,10 @@ const PORT = config.port;
 connectDb()
   .then(() => {
     // Start Server only after database connection is established
-    app.listen(PORT, () => {
+    const server = http.createServer(app);
+    // Initialize WebSocket server
+    initWebSocket(server);
+    server.listen(PORT, () => {
       logger.log(`Server is running on port ${PORT}`);
     });
   })
@@ -18,11 +23,9 @@ connectDb()
     process.exit(1);
   });
 
-// TODO: implement websockets for real-time features
-
-// possible websocket features:
+// WebSocket features:
 // - real-time order status updates
-// - real-time order recieved notifications (when a client places an order, show the order on the dashboard in real-time)
+// - real-time order received notifications (when a client places an order, show the order on the dashboard in real-time)
 
 // improvements:
 // - service layer between controllers and db
