@@ -109,12 +109,19 @@ const createOrder = async (req, res, next) => {
     await connection.beginTransaction();
 
     try {
+      // Create local timestamp for Ordered_at
+      const now = new Date();
+      const offsetMs = now.getTimezoneOffset() * 60000;
+      const localDate = new Date(now.getTime() - offsetMs);
+      const orderedAt = localDate.toISOString().slice(0, 19).replace("T", " ");
+
       const orderQuery =
-        "INSERT INTO orders (UserID, delivery_address, Paid) VALUES (?, ?, ?)";
+        "INSERT INTO orders (UserID, delivery_address, Paid, Ordered_at) VALUES (?, ?, ?, ?)";
       const [orderResults] = await connection.query(orderQuery, [
         userID,
         delivery_address,
         paid ? 1 : 0,
+        orderedAt,
       ]);
 
       const orderId = orderResults.insertId;
@@ -164,13 +171,25 @@ const updateOrder = async (req, res, next) => {
       fields.push("Status = ?");
       values.push(Status);
 
+      // Calculate local timestamp
+      const now = new Date();
+      const offsetMs = now.getTimezoneOffset() * 60000;
+      const localDate = new Date(now.getTime() - offsetMs);
+      const localTimestamp = localDate
+        .toISOString()
+        .slice(0, 19)
+        .replace("T", " ");
+
       // Automatically update timestamps based on status change
       if (Status === "processing") {
-        fields.push("processing_at = NOW()");
+        fields.push("processing_at = ?");
+        values.push(localTimestamp);
       } else if (Status === "delivering") {
-        fields.push("Delivering_at = NOW()");
+        fields.push("Delivering_at = ?");
+        values.push(localTimestamp);
       } else if (Status === "completed") {
-        fields.push("Completed_at = NOW()");
+        fields.push("Completed_at = ?");
+        values.push(localTimestamp);
       }
     }
 
