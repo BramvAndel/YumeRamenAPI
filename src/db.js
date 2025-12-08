@@ -20,7 +20,7 @@ const connectDb = async () => {
       password: config.db.password,
       database: config.db.database,
       waitForConnections: true,
-      connectionLimit: 10,
+      connectionLimit: config.db.connectionLimit,
       queueLimit: 0,
     });
     logger.log("Database pool created successfully with connection pooling");

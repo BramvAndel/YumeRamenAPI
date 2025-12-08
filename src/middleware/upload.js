@@ -1,10 +1,10 @@
-const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
-const config = require('../../config/config');
+const multer = require("multer");
+const path = require("path");
+const fs = require("fs");
+const config = require("../../config/config");
 
 // Ensure uploads directory exists
-const uploadDir = 'uploads';
+const uploadDir = "uploads";
 if (!fs.existsSync(uploadDir)){
     fs.mkdirSync(uploadDir);
 }
@@ -17,12 +17,12 @@ if (!fs.existsSync(uploadDir)){
  */
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, 'uploads/'); // Save files to 'uploads' folder
+        cb(null, "uploads/"); // Save files to "uploads" folder
     },
     filename: function (req, file, cb) {
         // Create unique filename: fieldname-timestamp.extension
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+        const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1E9);
+        cb(null, file.fieldname + "-" + uniqueSuffix + path.extname(file.originalname));
     }
 });
 
@@ -35,10 +35,10 @@ const storage = multer.diskStorage({
  * @returns {void} Calls callback with error or acceptance
  */
 const fileFilter = (req, file, cb) => {
-    if (file.mimetype.startsWith('image/')) {
+    if (file.mimetype.startsWith("image/")) {
         cb(null, true);
     } else {
-        cb(new Error('Not an image! Please upload an image.'), false);
+        cb(new Error("Not an image! Please upload an image."), false);
     }
 };
 

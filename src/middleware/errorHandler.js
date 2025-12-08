@@ -1,4 +1,4 @@
-const logger = require('../utils/logger');
+const logger = require("../utils/logger");
 
 /**
  * Global error handling middleware for Express
@@ -26,26 +26,26 @@ const errorHandler = (err, req, res, next) => {
     }
 
     // Handle specific error types
-    if (err.name === 'ValidationError') {
+    if (err.name === "ValidationError") {
         return res.status(400).json({ error: err.message });
     }
 
-    if (err.name === 'UnauthorizedError') {
-        return res.status(401).json({ error: 'Invalid token' });
+    if (err.name === "UnauthorizedError") {
+        return res.status(401).json({ error: "Invalid token" });
     }
 
     // Determine status code
     const statusCode = err.statusCode || err.status || 500;
 
     // In production, don't expose internal error details for 500s
-    const isProduction = process.env.NODE_ENV === 'production';
+    const isProduction = process.env.NODE_ENV === "production";
     const message = (isProduction && statusCode === 500) 
-        ? 'Internal Server Error' 
-        : (err.message || 'Internal Server Error');
+        ? "Internal Server Error" 
+        : (err.message || "Internal Server Error");
 
     res.status(statusCode).json({
         error: message
     });
-}
+};
 
 module.exports = errorHandler;

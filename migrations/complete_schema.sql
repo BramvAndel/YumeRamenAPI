@@ -57,5 +57,24 @@ CREATE TABLE IF NOT EXISTS refresh_tokens (
     FOREIGN KEY (userID) REFERENCES users(userID) ON DELETE CASCADE
 );
 
--- Optional: Insert a default admin user if you want to start fresh
--- INSERT INTO users (username, password, email, address) VALUES ('admin', 'admin123', 'admin@ramennoodles.com', '123 Noodle St');
+
+-- Recommended Indexes for Performance
+-- Add indexes for foreign keys and frequently queried fields
+
+-- Users table: index on email for fast lookup
+CREATE INDEX idx_users_email ON users(email);
+
+-- Orders table: index on UserID for user order queries
+CREATE INDEX idx_orders_userid ON orders(UserID);
+
+-- Orders table: index on Status for status-based queries
+CREATE INDEX idx_orders_status ON orders(Status);
+
+-- Dishes table: index on Name for search
+CREATE INDEX idx_dishes_name ON dishes(Name);
+
+-- Order Items table: index on dishID for dish order queries
+CREATE INDEX idx_order_items_dishid ON order_items(dishID);
+
+-- Order Items table: index on orderID for order item queries
+CREATE INDEX idx_order_items_orderid ON order_items(orderID);

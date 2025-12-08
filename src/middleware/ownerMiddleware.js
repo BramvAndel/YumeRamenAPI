@@ -18,7 +18,7 @@ const ensureOwnerOrAdmin = (req, res, next) => {
     const currentUserRole = req.user.role;
     const targetUserId = parseInt(req.params.id);
 
-    if (currentUserRole === 'admin') {
+    if (currentUserRole === "admin") {
         return next();
     }
 
@@ -26,7 +26,7 @@ const ensureOwnerOrAdmin = (req, res, next) => {
         return next();
     }
 
-    return res.status(403).json({ error: 'Access denied. You can only modify your own account.' });
+    return res.status(403).json({ error: "Access denied. You can only modify your own account." });
 };
 
 module.exports = ensureOwnerOrAdmin;

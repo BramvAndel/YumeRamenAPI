@@ -34,7 +34,7 @@ const error = (message, context = {}) => {
   if (context instanceof Error) {
     stack = context.stack;
     otherContext = { message: context.message, name: context.name };
-  } else if (typeof context === 'object') {
+  } else if (typeof context === "object") {
     ({ stack, ...otherContext } = context);
   } else {
     otherContext = { details: context };
