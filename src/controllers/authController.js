@@ -36,13 +36,13 @@ const login = async (req, res, next) => {
 
     const accessToken = jwt.sign(
       { userId: user.userID, email: user.email, role: user.role },
-      process.env.JWT_SECRET,
+      config.jwt.jwtSecret,
       { expiresIn: "15m" } // Short lived access token
     );
 
     const refreshToken = jwt.sign(
       { userId: user.userID, email: user.email, role: user.role },
-      config.refreshTokenSecret,
+      config.jwt.refreshTokenSecret,
       { expiresIn: "7d" } // Long lived refresh token
     );
 
@@ -61,7 +61,7 @@ const login = async (req, res, next) => {
       secure: isProduction,
       sameSite: "lax",
       path: "/",
-      maxAge: config.jwt.jwtAccesTokenExpoTime,
+      maxAge: config.jwt.jwtAccessTokenExpoTime,
     });
 
     res.cookie("refreshToken", refreshToken, {
@@ -95,7 +95,7 @@ const refreshToken = async (req, res, next) => {
     }
 
     // 1. Verify the token signature
-    const user = jwt.verify(token, config.refreshTokenSecret);
+    const user = jwt.verify(token, config.jwt.refreshTokenSecret);
 
     // 2. Check if token exists in DB
     const query = "SELECT * FROM refresh_tokens WHERE token = ?";
@@ -110,7 +110,7 @@ const refreshToken = async (req, res, next) => {
     // 3. Generate new Access Token
     const accessToken = jwt.sign(
       { userId: user.userId, email: user.email, role: user.role },
-      process.env.JWT_SECRET,
+      config.jwt.jwtSecret,
       { expiresIn: "15m" }
     );
 

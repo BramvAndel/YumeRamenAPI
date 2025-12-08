@@ -94,6 +94,18 @@ const deleteUser = async (req, res, next) => {
     const id = req.params.id;
     logger.log(`Delete user endpoint called for ID: ${id}`);
 
+    // Check for related orders
+    const checkOrdersQuery =
+      "SELECT COUNT(*) as count FROM orders WHERE UserID = ?";
+    const [orderCheck] = await connection.query(checkOrdersQuery, [id]);
+
+    if (orderCheck[0].count > 0) {
+      return res.status(400).json({
+        error:
+          "Cannot delete user with existing orders. Please delete orders first.",
+      });
+    }
+
     const query = "DELETE FROM users WHERE UserID = ?";
     const [results] = await connection.query(query, [id]);
 
