@@ -140,7 +140,7 @@ router.post(
   "/",
   authenticateToken,
   authorizeRoles("admin"),
-  upload.single("image"),
+  // upload.single("image"),
   dishesController.createDish
 );
 
@@ -189,7 +189,7 @@ router.put(
   "/:id",
   authenticateToken,
   authorizeRoles("admin"),
-  upload.single("image"),
+  // upload.single("image"),
   dishesController.updateDish
 );
 
@@ -225,4 +225,3 @@ router.delete(
 );
 
 module.exports = router;
-

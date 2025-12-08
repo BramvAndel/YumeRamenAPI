@@ -76,17 +76,25 @@ const createDish = async (req, res, next) => {
     logger.log("Create dish endpoint called");
     const { Name, Price, Ingredients } = req.body;
     // Normalize path to use forward slashes
-    const imagePath = req.file ? req.file.path.replace(/\\/g, "/") : null;
+    // const imagePath = req.file ? req.file.path.replace(/\\/g, "/") : null;
 
-    const result = await dishesService.createDish({ Name, Price, Ingredients, imagePath });
+    const result = await dishesService.createDish({
+      Name,
+      Price,
+      Ingredients,
+      // imagePath,
+    });
 
     res.status(201).json({
       message: "Dish created",
       dishId: result.dishId,
-      image: result.imagePath,
+      // image: result.imagePath,
     });
   } catch (error) {
-    if (error.message.includes("required") || error.message.includes("Invalid price")) {
+    if (
+      error.message.includes("required") ||
+      error.message.includes("Invalid price")
+    ) {
       return res.status(400).json({ error: error.message });
     }
     next(error);
@@ -120,13 +128,17 @@ const updateDish = async (req, res, next) => {
     logger.log(`Update dish endpoint called for ID: ${id}`);
     const { Name, Price, Ingredients } = req.body;
     // Normalize path to use forward slashes
-    const imagePath = req.file ? req.file.path.replace(/\\/g, "/") : undefined;
+    // const imagePath = req.file ? req.file.path.replace(/\\/g, "/") : undefined;
 
-    await dishesService.updateDish(id, { Name, Price, Ingredients, imagePath });
+    // await dishesService.updateDish(id, { Name, Price, Ingredients, imagePath });
+    await dishesService.updateDish(id, { Name, Price, Ingredients });
 
     res.json({ message: "Dish updated successfully" });
   } catch (error) {
-    if (error.message.includes("No fields") || error.message.includes("Invalid price")) {
+    if (
+      error.message.includes("No fields") ||
+      error.message.includes("Invalid price")
+    ) {
       return res.status(400).json({ error: error.message });
     }
     if (error.message === "Dish not found") {
@@ -164,9 +176,9 @@ const deleteDish = async (req, res, next) => {
     if (error.message === "Dish not found") {
       return res.status(404).json({ error: error.message });
     }
-    if (error.message.includes("Failed to delete associated image")) {
-      return res.status(500).json({ error: error.message });
-    }
+    // if (error.message.includes("Failed to delete associated image")) {
+    //   return res.status(500).json({ error: error.message });
+    // }
     next(error);
   }
 };
