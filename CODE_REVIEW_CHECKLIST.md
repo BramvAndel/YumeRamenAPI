@@ -108,7 +108,7 @@
 
 ### Code Quality & Maintainability
 
-- [ ] **5.1** Delete duplicate file `src/controllers/dishesController_new.js`
+- [x] **5.1** Delete duplicate file `src/controllers/dishesController_new.js`
 
   - Determine which controller is active
   - Remove the unused duplicate
@@ -118,46 +118,46 @@
   - Choose either PascalCase or snake_case consistently
   - Update database schema and API responses accordingly
 
-- [ ] **5.3** Replace magic numbers with named constants
+- [x] **5.3** Replace magic numbers with named constants
 
   - Define constants for time values (15 min, 7 days)
   - Define constants for file sizes (5MB)
   - Create a constants file
 
-- [ ] **5.4** Add JSDoc comments to all functions
+- [x] **5.4** Add JSDoc comments to all functions
 
   - Document parameters, return types
   - Add usage examples where helpful
 
-- [ ] **5.5** Implement service layer pattern
+- [x] **5.5** Implement service layer pattern
   - Create service files for business logic
   - Move database queries out of controllers
   - Improve testability and code reuse
 
 ### Swagger Documentation Issues
 
-- [ ] **6.1** Fix auth routes Swagger documentation in `src/routes/auth.js`
+- [x] **6.1** Fix auth routes Swagger documentation in `src/routes/auth.js`
 
   - Update docs to reflect cookie-based authentication
   - Remove `token` from request body schemas
 
-- [ ] **6.2** Fix login response documentation in `src/routes/auth.js` (lines 40-45)
+- [x] **6.2** Fix login response documentation in `src/routes/auth.js` (lines 40-45)
 
   - Remove `accessToken` and `refreshToken` from response schema
   - Document cookie-based response instead
 
-- [ ] **6.3** Fix global security configuration in `src/app.js` (lines 81-85)
+- [x] **6.3** Fix global security configuration in `src/app.js` (lines 81-85)
 
   - Remove global `bearerAuth` requirement
   - Add security per-endpoint instead
 
-- [ ] **6.4** Add security overrides for public endpoints in `src/routes/auth.js`
+- [x] **6.4** Add security overrides for public endpoints in `src/routes/auth.js`
   - Add `security: []` to login, logout, refresh endpoints
   - Add `security: []` to user creation endpoint
 
 ### Missing Features & Validations
 
-- [ ] **7.1** Add email uniqueness check in `src/controllers/userController.js` (createUser)
+- [x] **7.1** Add email uniqueness check in `src/controllers/userController.js` (createUser)
 
   - Query database to check if email exists
   - Return user-friendly error message
@@ -172,12 +172,12 @@
   - Define valid status transitions
   - Prevent invalid state changes (e.g., completed → ordered)
 
-- [ ] **7.4** Add old image deletion on update in `src/controllers/dishesController.js` (updateDish)
+- [x] **7.4** Add old image deletion on update in `src/controllers/dishesController.js` (updateDish)
 
   - Delete old image file when new image uploaded
   - Prevent orphaned files
 
-- [ ] **7.5** Add price validation in `src/controllers/dishesController.js`
+- [x] **7.5** Add price validation in `src/controllers/dishesController.js`
   - Ensure price is positive number
   - Validate numeric format
 

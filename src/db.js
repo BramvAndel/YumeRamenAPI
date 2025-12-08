@@ -4,6 +4,14 @@ const config = require("../config/config");
 
 let pool;
 
+/**
+ * Creates and initializes a MySQL connection pool
+ * @async
+ * @returns {Promise<Object>} MySQL connection pool instance
+ * @throws {Error} If pool creation fails
+ * @example
+ * await connectDb();
+ */
 const connectDb = async () => {
   try {
     pool = await mysql.createPool({
@@ -23,6 +31,19 @@ const connectDb = async () => {
   }
 };
 
+/**
+ * Gets a connection from the MySQL pool
+ * @async
+ * @returns {Promise<Object>} MySQL connection object (must be released after use)
+ * @throws {Error} If pool is not initialized
+ * @example
+ * const connection = await getConnection();
+ * try {
+ *   const [results] = await connection.query('SELECT * FROM users');
+ * } finally {
+ *   await connection.release();
+ * }
+ */
 const getConnection = async () => {
   if (!pool) {
     throw new Error("Database pool not initialized. Call connectDb() first.");

@@ -3,6 +3,27 @@ const logger = require("../src/utils/logger");
 
 let config;
 
+/**
+ * Application configuration object loaded from environment variables
+ * @type {Object}
+ * @property {string} port - Server port number
+ * @property {Object} db - Database configuration
+ * @property {string} db.host - Database host
+ * @property {string} db.user - Database user
+ * @property {string} db.password - Database password
+ * @property {string} db.database - Database name
+ * @property {Object} jwt - JWT configuration
+ * @property {number} jwt.jwtAccessTokenExpoTime - Access token expiration time in milliseconds
+ * @property {number} jwt.jwtRefreshTokenExpoTime - Refresh token expiration time in milliseconds
+ * @property {string} jwt.jwtSecret - JWT secret for access tokens
+ * @property {string} jwt.refreshTokenSecret - JWT secret for refresh tokens
+ * @property {Object} rateLimit - Rate limiting configuration
+ * @property {number} rateLimit.windowAmount - Max requests per window for general API
+ * @property {number} rateLimit.windowMs - Time window in milliseconds
+ * @property {number} rateLimit.authAmount - Max auth attempts per window
+ * @property {number} rateLimit.authTime - Auth rate limit time window
+ * @property {string} maxFileSizeMB - Maximum file upload size in MB
+ */
 try {
   config = {
     port: process.env.PORT,
@@ -24,6 +45,7 @@ try {
       authAmount: 3,
       authTime: 15 * 60 * 1000, // min
     },
+    maxFileSizeMB: process.env.MAX_MB_FILE_SIZE,
   };
   logger.log("Configuration loaded successfully");
 } catch (error) {

@@ -1,58 +1,28 @@
-const { getConnection } = require("../db");
-const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
 const logger = require("../utils/logger");
 const config = require("../../config/config");
-const { isValidEmail } = require("../utils/validation");
+const authService = require("../services/authService");
 
+/**
+ * Authenticates a user with email and password, generates access and refresh tokens
+ * @async
+ * @param {Object} req - Express request object
+ * @param {Object} req.body - Request body
+ * @param {string} req.body.email - User's email address
+ * @param {string} req.body.password - User's password (plain text)
+ * @param {Object} res - Express response object
+ * @param {Function} next - Express next middleware function
+ * @returns {Promise<void>} Returns JSON with userId and role, sets HTTP-only cookies
+ * @example
+ * // Request body:
+ * { "email": "user@example.com", "password": "securePassword123" }
+ * // Response:
+ * { "message": "Login successful", "userId": 1, "role": "user" }
+ */
 const login = async (req, res, next) => {
-  let connection;
   try {
-    connection = await getConnection();
     const { email, password } = req.body;
 
-    if (!email || !password) {
-      return res.status(400).json({ error: "Email and password are required" });
-    }
-
-    if (!isValidEmail(email)) {
-      return res.status(400).json({ error: "Invalid email format" });
-    }
-
-    const query = "SELECT * FROM users WHERE email = ?";
-    const [results] = await connection.query(query, [email]);
-
-    if (results.length === 0) {
-      return res.status(401).json({ error: "Invalid email or password" });
-    }
-
-    const user = results[0];
-
-    const isMatch = await bcrypt.compare(password, user.password);
-
-    if (!isMatch) {
-      return res.status(401).json({ error: "Invalid email or password" });
-    }
-
-    const accessToken = jwt.sign(
-      { userId: user.userID, email: user.email, role: user.role },
-      config.jwt.jwtSecret,
-      { expiresIn: "15m" } // Short lived access token
-    );
-
-    const refreshToken = jwt.sign(
-      { userId: user.userID, email: user.email, role: user.role },
-      config.jwt.refreshTokenSecret,
-      { expiresIn: "7d" } // Long lived refresh token
-    );
-
-    // Calculate expiration date for DB
-    const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + 7);
-
-    const insertQuery =
-      "INSERT INTO refresh_tokens (token, userID, expires_at) VALUES (?, ?, ?)";
-    await connection.query(insertQuery, [refreshToken, user.userID, expiresAt]);
+    const { userId, role, accessToken, refreshToken } = await authService.login(email, password);
 
     // Set secure HTTP-only cookies
     const isProduction = process.env.NODE_ENV === "production";
@@ -69,50 +39,44 @@ const login = async (req, res, next) => {
       secure: isProduction,
       sameSite: "lax",
       path: "/",
-      maxAge: config.jwt.jwtRefreshTokenExpoTime, // 7 days
+      maxAge: config.jwt.jwtRefreshTokenExpoTime,
     });
 
     res.json({
       message: "Login successful",
-      userId: user.userID,
-      role: user.role,
+      userId,
+      role,
     });
   } catch (error) {
+    if (
+      error.message.includes("required") ||
+      error.message.includes("Invalid")
+    ) {
+      const statusCode = error.message.includes("Invalid email or password") ? 401 : 400;
+      return res.status(statusCode).json({ error: error.message });
+    }
     next(error);
-  } finally {
-    if (connection) await connection.release();
   }
 };
 
+/**
+ * Refreshes the access token using a valid refresh token from cookies
+ * @async
+ * @param {Object} req - Express request object
+ * @param {Object} req.cookies - HTTP cookies
+ * @param {string} req.cookies.refreshToken - Refresh token from HTTP-only cookie
+ * @param {Object} res - Express response object
+ * @param {Function} next - Express next middleware function
+ * @returns {Promise<void>} Returns success message and sets new access token cookie
+ * @example
+ * // Response:
+ * { "message": "Token refreshed successfully" }
+ */
 const refreshToken = async (req, res, next) => {
-  let connection;
   try {
-    connection = await getConnection();
     const token = req.cookies?.refreshToken;
 
-    if (!token) {
-      return res.status(401).json({ error: "Refresh Token Required" });
-    }
-
-    // 1. Verify the token signature
-    const user = jwt.verify(token, config.jwt.refreshTokenSecret);
-
-    // 2. Check if token exists in DB
-    const query = "SELECT * FROM refresh_tokens WHERE token = ?";
-    const [results] = await connection.query(query, [token]);
-
-    if (results.length === 0) {
-      return res
-        .status(403)
-        .json({ error: "Refresh Token Not Found (Revoked)" });
-    }
-
-    // 3. Generate new Access Token
-    const accessToken = jwt.sign(
-      { userId: user.userId, email: user.email, role: user.role },
-      config.jwt.jwtSecret,
-      { expiresIn: "15m" }
-    );
+    const accessToken = await authService.refreshAccessToken(token);
 
     // Set new access token cookie
     res.cookie("accessToken", accessToken, {
@@ -120,32 +84,41 @@ const refreshToken = async (req, res, next) => {
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       path: "/",
-      maxAge: 15 * 60 * 1000, // 15 minutes
+      maxAge: config.jwt.jwtAccessTokenExpoTime,
     });
 
     res.json({ message: "Token refreshed successfully" });
   } catch (error) {
     if (
-      error.name === "JsonWebTokenError" ||
-      error.name === "TokenExpiredError"
+      error.message.includes("Required") ||
+      error.message.includes("Invalid") ||
+      error.message.includes("Revoked")
     ) {
-      return res.status(403).json({ error: "Invalid Refresh Token" });
+      const statusCode = error.message.includes("Required") ? 401 : 403;
+      return res.status(statusCode).json({ error: error.message });
     }
     next(error);
   }
 };
 
+/**
+ * Logs out a user by revoking their refresh token and clearing cookies
+ * @async
+ * @param {Object} req - Express request object
+ * @param {Object} req.cookies - HTTP cookies
+ * @param {string} req.cookies.refreshToken - Refresh token to revoke
+ * @param {Object} res - Express response object
+ * @param {Function} next - Express next middleware function
+ * @returns {Promise<void>} Returns success message and clears authentication cookies
+ * @example
+ * // Response:
+ * { "message": "Logged out successfully" }
+ */
 const logout = async (req, res, next) => {
   try {
-    const connection = await getConnection();
     const token = req.cookies?.refreshToken;
 
-    if (!token) {
-      return res.status(400).json({ error: "Token required" });
-    }
-
-    const query = "DELETE FROM refresh_tokens WHERE token = ?";
-    await connection.query(query, [token]);
+    await authService.logout(token);
 
     // Clear cookies
     res.clearCookie("accessToken", {
@@ -163,6 +136,9 @@ const logout = async (req, res, next) => {
 
     res.json({ message: "Logged out successfully" });
   } catch (error) {
+    if (error.message === "Token required") {
+      return res.status(400).json({ error: error.message });
+    }
     next(error);
   }
 };

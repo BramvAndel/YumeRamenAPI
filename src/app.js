@@ -71,18 +71,14 @@ const swaggerOptions = {
     ],
     components: {
       securitySchemes: {
-        bearerAuth: {
-          type: "http",
-          scheme: "bearer",
-          bearerFormat: "JWT",
+        cookieAuth: {
+          type: "apiKey",
+          in: "cookie",
+          name: "accessToken",
+          description: "JWT access token stored in HTTP-only cookie",
         },
       },
     },
-    security: [
-      {
-        bearerAuth: [],
-      },
-    ],
   },
   apis: ["./src/routes/*.js"],
 };

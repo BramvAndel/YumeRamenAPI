@@ -71,7 +71,7 @@ const userController = require("../controllers/userController");
  *     summary: Returns the list of all users
  *     tags: [Users]
  *     security:
- *       - bearerAuth: []
+ *       - cookieAuth: []
  *     description: Requires Admin privileges
  *     responses:
  *       200:
@@ -99,7 +99,7 @@ router.get(
  *     summary: Get the user by id
  *     tags: [Users]
  *     security:
- *       - bearerAuth: []
+ *       - cookieAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -150,6 +150,7 @@ router.get("/:id", authenticateToken, userController.getUserById);
  *                 type: string
  *               phone_number:
  *                 type: string
+ *     security: []
  *     responses:
  *       201:
  *         description: The user was successfully created
@@ -171,7 +172,7 @@ router.post("/", userController.createUser);
  *     summary: Remove the user by id
  *     tags: [Users]
  *     security:
- *       - bearerAuth: []
+ *       - cookieAuth: []
  *     description: Requires Owner or Admin privileges
  *     parameters:
  *       - in: path
@@ -202,7 +203,7 @@ router.delete(
  *     summary: Update the user by the id
  *     tags: [Users]
  *     security:
- *       - bearerAuth: []
+ *       - cookieAuth: []
  *     description: Requires Owner or Admin privileges
  *     parameters:
  *       - in: path
@@ -246,3 +247,4 @@ router.put(
 );
 
 module.exports = router;
+

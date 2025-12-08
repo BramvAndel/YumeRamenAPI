@@ -1,271 +1,175 @@
-const { getConnection } = require("../db");
 const logger = require("../utils/logger");
-const { isValidQuantity } = require("../utils/validation");
+const ordersService = require("../services/ordersService");
 
+/**
+ * Retrieves all orders with their associated items and dish details
+ * @async
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @param {Function} next - Express next middleware function
+ * @returns {Promise<void>} Returns JSON array of orders with nested items
+ * @example
+ * // Response:
+ * [{ "OrderID": 1, "UserID": 1, "Status": "ordered", "items": [{ "dishID": 1, "quantity": 2, ... }] }]
+ */
 const getAllOrders = async (req, res, next) => {
-  let connection;
   try {
-    connection = await getConnection();
     logger.log("Get all orders endpoint called");
-
-    const query = `
-            SELECT o.*, oi.dishID, oi.aantal, d.Name as DishName, d.Price as DishPrice
-            FROM orders o
-            LEFT JOIN order_items oi ON o.OrderID = oi.orderID
-            LEFT JOIN dishes d ON oi.dishID = d.DishID
-        `;
-
-    const [results] = await connection.query(query);
-
-    const ordersMap = new Map();
-
-    results.forEach((row) => {
-      if (!ordersMap.has(row.OrderID)) {
-        const { dishID, aantal, DishName, DishPrice, ...orderData } = row;
-        ordersMap.set(row.OrderID, {
-          ...orderData,
-          items: [],
-        });
-      }
-
-      if (row.dishID) {
-        ordersMap.get(row.OrderID).items.push({
-          dishID: row.dishID,
-          quantity: row.aantal,
-          name: row.DishName,
-          price: row.DishPrice,
-        });
-      }
-    });
-
-    res.json(Array.from(ordersMap.values()));
+    const orders = await ordersService.getAllOrders();
+    res.json(orders);
   } catch (error) {
     next(error);
-  } finally {
-    if (connection) await connection.release();
   }
 };
 
+/**
+ * Retrieves a single order by ID with its items and dish details
+ * @async
+ * @param {Object} req - Express request object
+ * @param {Object} req.params - URL parameters
+ * @param {string} req.params.id - Order ID to retrieve
+ * @param {Object} res - Express response object
+ * @param {Function} next - Express next middleware function
+ * @returns {Promise<void>} Returns JSON object with order and items or 404 if not found
+ * @example
+ * // Response:
+ * { "OrderID": 1, "UserID": 1, "items": [{ "dishID": 1, "aantal": 2, "Name": "Ramen" }] }
+ */
 const getOrderById = async (req, res, next) => {
-  let connection;
   try {
-    connection = await getConnection();
     const id = req.params.id;
     logger.log(`Get order by ID endpoint called for ID: ${id}`);
 
-    const query = "SELECT * FROM orders WHERE OrderID = ?";
-    const [results] = await connection.query(query, [id]);
+    const order = await ordersService.getOrderById(id);
 
-    if (results.length === 0) {
+    if (!order) {
       return res.status(404).json({ error: "Order not found" });
     }
 
-    const order = results[0];
-
-    // Fetch items for this order
-    const itemsQuery = `
-            SELECT oi.dishID, oi.aantal, d.Name, d.Price 
-            FROM order_items oi
-            JOIN dishes d ON oi.dishID = d.DishID
-            WHERE oi.orderID = ?
-        `;
-
-    const [items] = await connection.query(itemsQuery, [id]);
-    order.items = items;
     res.json(order);
   } catch (error) {
     next(error);
-  } finally {
-    if (connection) await connection.release();
   }
 };
 
+/**
+ * Creates a new order for the authenticated user with multiple items
+ * @async
+ * @param {Object} req - Express request object
+ * @param {Object} req.body - Request body
+ * @param {Array<Object>} req.body.items - Array of order items
+ * @param {number} req.body.items[].dishID - ID of the dish to order
+ * @param {number} req.body.items[].quantity - Quantity of the dish
+ * @param {string} [req.body.delivery_address] - Delivery address for the order
+ * @param {boolean} [req.body.paid] - Whether the order is paid
+ * @param {Object} req.user - Authenticated user from JWT
+ * @param {number} req.user.userId - User ID from token
+ * @param {Object} res - Express response object
+ * @param {Function} next - Express next middleware function
+ * @returns {Promise<void>} Returns success message with new order ID
+ * @example
+ * // Request body:
+ * { "items": [{ "dishID": 1, "quantity": 2 }, { "dishID": 3, "quantity": 1 }], "delivery_address": "123 Main St" }
+ * // Response:
+ * { "message": "Order created", "orderId": 1 }
+ */
 const createOrder = async (req, res, next) => {
-  let connection;
   try {
-    connection = await getConnection();
     logger.log("Create order endpoint called");
 
-    // Use the authenticated user's ID
     const userID = req.user.userId;
-    const { items, delivery_address, paid } = req.body; // Expect items: [{ dishID, quantity }]
+    const { items, delivery_address, paid } = req.body;
 
     logger.log(
       "Received order payload:",
       JSON.stringify({ items, delivery_address, paid })
     );
 
-    if (!userID) {
-      return res.status(400).json({ error: "User ID missing from token" });
-    }
+    const orderId = await ordersService.createOrder(userID, {
+      items,
+      delivery_address,
+      paid,
+    });
 
-    if (!items || !Array.isArray(items) || items.length === 0) {
-      return res
-        .status(400)
-        .json({ error: "Order must contain at least one item" });
-    }
-
-    for (const item of items) {
-      if (!isValidQuantity(item.quantity)) {
-        return res
-          .status(400)
-          .json({ error: `Invalid quantity for dishID ${item.dishID}` });
-      }
-    }
-
-    // Validate that all dishes exist
-    const uniqueDishIds = [
-      ...new Set(items.map((item) => parseInt(item.dishID))),
-    ];
-
-    const checkDishesQuery = "SELECT DishID FROM dishes WHERE DishID IN (?)";
-    const [existingDishes] = await connection.query(checkDishesQuery, [
-      uniqueDishIds,
-    ]);
-
-    if (existingDishes.length !== uniqueDishIds.length) {
-      const foundIds = existingDishes.map((d) => d.DishID);
-      const missingIds = uniqueDishIds.filter((id) => !foundIds.includes(id));
-      return res
-        .status(400)
-        .json({ error: `Dishes not found: ${missingIds.join(", ")}` });
-    }
-
-    // Start transaction
-    await connection.beginTransaction();
-
-    try {
-      // Create local timestamp for Ordered_at
-      const now = new Date();
-      const offsetMs = now.getTimezoneOffset() * 60000;
-      const localDate = new Date(now.getTime() - offsetMs);
-      const orderedAt = localDate.toISOString().slice(0, 19).replace("T", " ");
-
-      const orderQuery =
-        "INSERT INTO orders (UserID, delivery_address, Paid, Ordered_at) VALUES (?, ?, ?, ?)";
-      const [orderResults] = await connection.query(orderQuery, [
-        userID,
-        delivery_address,
-        paid ? 1 : 0,
-        orderedAt,
-      ]);
-
-      const orderId = orderResults.insertId;
-      const orderItems = items.map((item) => [
-        orderId,
-        parseInt(item.dishID),
-        parseInt(item.quantity) || 1,
-      ]);
-
-      logger.log(
-        "Mapped order items for DB insertion:",
-        JSON.stringify(orderItems)
-      );
-
-      const itemsQuery =
-        "INSERT INTO order_items (orderID, dishID, aantal) VALUES ?";
-      await connection.query(itemsQuery, [orderItems]);
-
-      await connection.commit();
-      logger.log("Order created successfully with items. OrderID:", orderId);
-      res.status(201).json({ message: "Order created", orderId });
-    } catch (error) {
-      await connection.rollback();
-      throw error;
-    }
+    res.status(201).json({ message: "Order created", orderId });
   } catch (error) {
+    if (
+      error.message.includes("required") ||
+      error.message.includes("Invalid") ||
+      error.message.includes("must contain") ||
+      error.message.includes("not found")
+    ) {
+      return res.status(400).json({ error: error.message });
+    }
     next(error);
-  } finally {
-    if (connection) await connection.release();
   }
 };
 
+/**
+ * Updates order status and/or payment status. Automatically sets timestamp fields based on status.
+ * @async
+ * @param {Object} req - Express request object
+ * @param {Object} req.params - URL parameters
+ * @param {string} req.params.id - Order ID to update
+ * @param {Object} req.body - Request body with fields to update
+ * @param {string} [req.body.Status] - New order status (ordered/processing/delivering/completed)
+ * @param {boolean} [req.body.Paid] - Payment status
+ * @param {Object} res - Express response object
+ * @param {Function} next - Express next middleware function
+ * @returns {Promise<void>} Returns success message
+ * @example
+ * // Request body:
+ * { "Status": "processing" }
+ * // Response:
+ * { "message": "Order updated successfully" }
+ */
 const updateOrder = async (req, res, next) => {
-  let connection;
   try {
-    connection = await getConnection();
     const id = req.params.id;
     const { Status, Paid } = req.body;
 
     logger.log(`Update order endpoint called for ID: ${id}`);
 
-    // Build dynamic query to allow partial updates
-    let fields = [];
-    let values = [];
-
-    if (Status !== undefined) {
-      fields.push("Status = ?");
-      values.push(Status);
-
-      // Calculate local timestamp
-      const now = new Date();
-      const offsetMs = now.getTimezoneOffset() * 60000;
-      const localDate = new Date(now.getTime() - offsetMs);
-      const localTimestamp = localDate
-        .toISOString()
-        .slice(0, 19)
-        .replace("T", " ");
-
-      // Automatically update timestamps based on status change
-      if (Status === "processing") {
-        fields.push("processing_at = ?");
-        values.push(localTimestamp);
-      } else if (Status === "delivering") {
-        fields.push("Delivering_at = ?");
-        values.push(localTimestamp);
-      } else if (Status === "completed") {
-        fields.push("Completed_at = ?");
-        values.push(localTimestamp);
-      }
-    }
-
-    if (Paid !== undefined) {
-      fields.push("Paid = ?");
-      values.push(Paid);
-    }
-
-    if (fields.length === 0) {
-      return res.status(400).json({ error: "No fields provided for update" });
-    }
-
-    values.push(id);
-
-    const query = `UPDATE orders SET ${fields.join(", ")} WHERE OrderID = ?`;
-
-    const [results] = await connection.query(query, values);
-
-    if (results.affectedRows === 0) {
-      return res.status(404).json({ error: "Order not found" });
-    }
+    await ordersService.updateOrder(id, { Status, Paid });
 
     res.json({ message: "Order updated successfully" });
   } catch (error) {
+    if (error.message.includes("No fields")) {
+      return res.status(400).json({ error: error.message });
+    }
+    if (error.message === "Order not found") {
+      return res.status(404).json({ error: error.message });
+    }
     next(error);
-  } finally {
-    if (connection) await connection.release();
   }
 };
 
+/**
+ * Deletes an order by ID
+ * @async
+ * @param {Object} req - Express request object
+ * @param {Object} req.params - URL parameters
+ * @param {string} req.params.id - Order ID to delete
+ * @param {Object} res - Express response object
+ * @param {Function} next - Express next middleware function
+ * @returns {Promise<void>} Returns success message or 404 if order not found
+ * @example
+ * // Response:
+ * { "message": "Order deleted successfully" }
+ */
 const deleteOrder = async (req, res, next) => {
-  let connection;
   try {
-    connection = await getConnection();
     const id = req.params.id;
     logger.log(`Delete order endpoint called for ID: ${id}`);
 
-    const query = "DELETE FROM orders WHERE OrderID = ?";
-
-    const [results] = await connection.query(query, [id]);
-
-    if (results.affectedRows === 0) {
-      return res.status(404).json({ error: "Order not found" });
-    }
+    await ordersService.deleteOrder(id);
 
     res.json({ message: "Order deleted successfully" });
   } catch (error) {
+    if (error.message === "Order not found") {
+      return res.status(404).json({ error: error.message });
+    }
     next(error);
-  } finally {
-    if (connection) await connection.release();
   }
 };
 

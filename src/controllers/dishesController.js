@@ -1,205 +1,173 @@
-const { getConnection } = require("../db");
-const fs = require("fs");
-const path = require("path");
 const logger = require("../utils/logger");
-const { isValidPrice } = require("../utils/validation");
+const dishesService = require("../services/dishesService");
 
+/**
+ * Retrieves all dishes from the database
+ * @async
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @param {Function} next - Express next middleware function
+ * @returns {Promise<void>} Returns JSON array of all dishes
+ * @example
+ * // Response:
+ * [{ "DishID": 1, "Name": "Ramen", "Price": 12.99, "Ingredients": "noodles, broth", ... }]
+ */
 const getAllDishes = async (req, res, next) => {
-  let connection;
   try {
-    connection = await getConnection();
     logger.log("Get all dishes endpoint called");
-    const query = "SELECT * FROM dishes";
-    const [results] = await connection.query(query);
-    res.json(results);
+    const dishes = await dishesService.getAllDishes();
+    res.json(dishes);
   } catch (error) {
     next(error);
-  } finally {
-    if (connection) await connection.release();
   }
 };
 
+/**
+ * Retrieves a single dish by its ID
+ * @async
+ * @param {Object} req - Express request object
+ * @param {Object} req.params - URL parameters
+ * @param {string} req.params.id - Dish ID to retrieve
+ * @param {Object} res - Express response object
+ * @param {Function} next - Express next middleware function
+ * @returns {Promise<void>} Returns JSON object with dish data or 404 if not found
+ * @example
+ * // Response:
+ * { "DishID": 1, "Name": "Ramen", "Price": 12.99, "Ingredients": "noodles, broth" }
+ */
 const getDishById = async (req, res, next) => {
-  let connection;
   try {
-    connection = await getConnection();
     const id = req.params.id;
     logger.log(`Get dish by ID endpoint called for ID: ${id}`);
 
-    const query = "SELECT * FROM dishes WHERE DishID = ?";
-    const [results] = await connection.query(query, [id]);
+    const dish = await dishesService.getDishById(id);
 
-    if (results.length === 0) {
+    if (!dish) {
       return res.status(404).json({ error: "Dish not found" });
     }
 
-    res.json(results[0]);
+    res.json(dish);
   } catch (error) {
     next(error);
-  } finally {
-    if (connection) await connection.release();
   }
 };
 
+/**
+ * Creates a new dish with optional image upload
+ * @async
+ * @param {Object} req - Express request object
+ * @param {Object} req.body - Request body
+ * @param {string} req.body.Name - Dish name
+ * @param {number} req.body.Price - Dish price (must be positive)
+ * @param {string} req.body.Ingredients - Dish ingredients
+ * @param {Object} [req.file] - Uploaded image file from multer
+ * @param {string} [req.file.path] - Path to uploaded image
+ * @param {Object} res - Express response object
+ * @param {Function} next - Express next middleware function
+ * @returns {Promise<void>} Returns success message with new dish ID and image path
+ * @example
+ * // Request body:
+ * { "Name": "Tonkotsu Ramen", "Price": 14.99, "Ingredients": "pork broth, noodles" }
+ * // Response:
+ * { "message": "Dish created", "dishId": 1, "image": "uploads/image-123.jpg" }
+ */
 const createDish = async (req, res, next) => {
-  let connection;
   try {
-    connection = await getConnection();
     logger.log("Create dish endpoint called");
     const { Name, Price, Ingredients } = req.body;
     // Normalize path to use forward slashes
     const imagePath = req.file ? req.file.path.replace(/\\/g, "/") : null;
 
-    if (!Name || !Price || !Ingredients) {
-      return res
-        .status(400)
-        .json({ error: "Name, Price and Ingredients are required" });
-    }
+    const result = await dishesService.createDish({ Name, Price, Ingredients, imagePath });
 
-    if (!isValidPrice(Price)) {
-      return res.status(400).json({ error: "Invalid price format" });
-    }
-
-    const query =
-      "INSERT INTO dishes (Name, Price, Ingredients, Image) VALUES (?, ?, ?, ?)";
-    const [results] = await connection.query(query, [
-      Name,
-      Price,
-      Ingredients,
-      imagePath,
-    ]);
     res.status(201).json({
       message: "Dish created",
-      dishId: results.insertId,
-      image: imagePath,
+      dishId: result.dishId,
+      image: result.imagePath,
     });
   } catch (error) {
+    if (error.message.includes("required") || error.message.includes("Invalid price")) {
+      return res.status(400).json({ error: error.message });
+    }
     next(error);
-  } finally {
-    if (connection) await connection.release();
   }
 };
 
+/**
+ * Updates an existing dish with optional image replacement
+ * @async
+ * @param {Object} req - Express request object
+ * @param {Object} req.params - URL parameters
+ * @param {string} req.params.id - Dish ID to update
+ * @param {Object} req.body - Request body with fields to update
+ * @param {string} [req.body.Name] - New dish name
+ * @param {number} [req.body.Price] - New price (must be positive)
+ * @param {string} [req.body.Ingredients] - New ingredients
+ * @param {Object} [req.file] - New uploaded image file from multer
+ * @param {string} [req.file.path] - Path to new uploaded image
+ * @param {Object} res - Express response object
+ * @param {Function} next - Express next middleware function
+ * @returns {Promise<void>} Returns success message
+ * @example
+ * // Request body:
+ * { "Name": "Updated Ramen", "Price": 15.99 }
+ * // Response:
+ * { "message": "Dish updated successfully" }
+ */
 const updateDish = async (req, res, next) => {
-  let connection;
   try {
-    connection = await getConnection();
     const id = req.params.id;
     logger.log(`Update dish endpoint called for ID: ${id}`);
     const { Name, Price, Ingredients } = req.body;
     // Normalize path to use forward slashes
     const imagePath = req.file ? req.file.path.replace(/\\/g, "/") : undefined;
 
-    let fields = [];
-    let values = [];
+    await dishesService.updateDish(id, { Name, Price, Ingredients, imagePath });
 
-    if (Name !== undefined) {
-      fields.push("Name = ?");
-      values.push(Name);
-    }
-    if (Price !== undefined) {
-      if (!isValidPrice(Price)) {
-        return res.status(400).json({ error: "Invalid price format" });
-      }
-      fields.push("Price = ?");
-      values.push(Price);
-    }
-    if (Ingredients !== undefined) {
-      fields.push("Ingredients = ?");
-      values.push(Ingredients);
-    }
-    if (imagePath !== undefined) {
-      fields.push("Image = ?");
-      values.push(imagePath);
-    }
-
-    if (fields.length === 0) {
-      return res.status(400).json({ error: "No fields provided for update" });
-    }
-
-    values.push(id);
-    const query = `UPDATE dishes SET ${fields.join(", ")} WHERE DishID = ?`;
-
-    const [results] = await connection.query(query, values);
-    if (results.affectedRows === 0) {
-      return res.status(404).json({ error: "Dish not found" });
-    }
     res.json({ message: "Dish updated successfully" });
   } catch (error) {
+    if (error.message.includes("No fields") || error.message.includes("Invalid price")) {
+      return res.status(400).json({ error: error.message });
+    }
+    if (error.message === "Dish not found") {
+      return res.status(404).json({ error: error.message });
+    }
     next(error);
-  } finally {
-    if (connection) await connection.release();
   }
 };
 
+/**
+ * Deletes a dish and its associated image file. Uses transaction to ensure consistency.
+ * @async
+ * @param {Object} req - Express request object
+ * @param {Object} req.params - URL parameters
+ * @param {string} req.params.id - Dish ID to delete
+ * @param {Object} res - Express response object
+ * @param {Function} next - Express next middleware function
+ * @returns {Promise<void>} Returns success message or error if dish is in orders
+ * @example
+ * // Response:
+ * { "message": "Dish deleted successfully" }
+ */
 const deleteDish = async (req, res, next) => {
-  let connection;
   try {
-    connection = await getConnection();
     const id = req.params.id;
     logger.log(`Delete dish endpoint called for ID: ${id}`);
 
-    await connection.beginTransaction();
+    await dishesService.deleteDish(id);
 
-    // Check for related order items
-    const checkOrderItemsQuery =
-      "SELECT COUNT(*) as count FROM order_items WHERE dishID = ?";
-    const [orderItemsCheck] = await connection.query(checkOrderItemsQuery, [
-      id,
-    ]);
-
-    if (orderItemsCheck[0].count > 0) {
-      await connection.rollback();
-      return res
-        .status(400)
-        .json({ error: "Cannot delete dish that is part of existing orders." });
-    }
-
-    // First, get the image path
-    const selectQuery = "SELECT Image FROM dishes WHERE DishID = ? FOR UPDATE";
-    const [results] = await connection.query(selectQuery, [id]);
-
-    if (results.length === 0) {
-      await connection.rollback();
-      return res.status(404).json({ error: "Dish not found" });
-    }
-
-    const imagePath = results[0].Image;
-
-    // Then delete from database
-    const deleteQuery = "DELETE FROM dishes WHERE DishID = ?";
-    await connection.query(deleteQuery, [id]);
-
-    // If DB delete successful, try to delete the file
-    if (imagePath) {
-      try {
-        await fs.promises.unlink(imagePath);
-        logger.log("Successfully deleted local image file:", imagePath);
-      } catch (err) {
-        if (err.code !== "ENOENT") {
-          // If file exists but can't be deleted, rollback DB change
-          logger.error(
-            `Failed to delete image file ${imagePath}, rolling back DB deletion. Error: ${err.message}`
-          );
-          await connection.rollback();
-          return res
-            .status(500)
-            .json({ error: "Failed to delete associated image file" });
-        }
-        // If file doesn't exist, that's fine, proceed to commit
-        logger.log(
-          `Image file ${imagePath} not found, proceeding with DB deletion.`
-        );
-      }
-    }
-
-    await connection.commit();
     res.json({ message: "Dish deleted successfully" });
   } catch (error) {
-    if (connection) await connection.rollback();
+    if (error.message.includes("Cannot delete dish")) {
+      return res.status(400).json({ error: error.message });
+    }
+    if (error.message === "Dish not found") {
+      return res.status(404).json({ error: error.message });
+    }
+    if (error.message.includes("Failed to delete associated image")) {
+      return res.status(500).json({ error: error.message });
+    }
     next(error);
-  } finally {
-    if (connection) await connection.release();
   }
 };
 

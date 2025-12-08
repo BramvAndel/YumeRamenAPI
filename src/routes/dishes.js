@@ -101,7 +101,7 @@ router.get("/:id", dishesController.getDishById);
  *     summary: Create a new dish
  *     tags: [Dishes]
  *     security:
- *       - bearerAuth: []
+ *       - cookieAuth: []
  *     description: Requires Admin privileges
  *     requestBody:
  *       required: true
@@ -151,7 +151,7 @@ router.post(
  *     summary: Update the dish by the id
  *     tags: [Dishes]
  *     security:
- *       - bearerAuth: []
+ *       - cookieAuth: []
  *     description: Requires Admin privileges
  *     parameters:
  *       - in: path
@@ -200,7 +200,7 @@ router.put(
  *     summary: Remove the dish by id
  *     tags: [Dishes]
  *     security:
- *       - bearerAuth: []
+ *       - cookieAuth: []
  *     description: Requires Admin privileges
  *     parameters:
  *       - in: path
@@ -225,3 +225,4 @@ router.delete(
 );
 
 module.exports = router;
+

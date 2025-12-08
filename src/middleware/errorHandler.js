@@ -1,5 +1,21 @@
 const logger = require('../utils/logger');
 
+/**
+ * Global error handling middleware for Express
+ * Logs errors server-side and returns appropriate error responses to clients
+ * @param {Error} err - Error object
+ * @param {string} [err.message] - Error message
+ * @param {string} [err.stack] - Error stack trace
+ * @param {string} [err.name] - Error type name
+ * @param {number} [err.statusCode] - HTTP status code
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @param {Function} next - Express next middleware function
+ * @returns {void} Sends error response to client
+ * @example
+ * // Usage in app.js:
+ * app.use(errorHandler);
+ */
 const errorHandler = (err, req, res, next) => {
     // Log the full error details server-side
     logger.error(err.message, { stack: err.stack, path: req.path, method: req.method });
