@@ -124,8 +124,6 @@ const createDish = async (req, res, next) => {
  */
 const updateDish = async (req, res, next) => {
   try {
-    logger.log("HEADERS:", req.headers);
-    logger.log("CONTENT-TYPE:", req.headers["content-type"]);
     const id = req.params.id;
     logger.log(`Update dish endpoint called for ID: ${id}`);
     const { Name, Price, Ingredients } = req.body;
