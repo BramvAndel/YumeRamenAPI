@@ -191,40 +191,40 @@ const deleteDish = async (dishId) => {
     // }
 
     // First, get the image path
-    // const selectQuery = "SELECT Image FROM dishes WHERE DishID = ? FOR UPDATE";
-    // const [results] = await connection.query(selectQuery, [dishId]);
+    const selectQuery = "SELECT Image FROM dishes WHERE DishID = ? FOR UPDATE";
+    const [results] = await connection.query(selectQuery, [dishId]);
 
-    // if (results.length === 0) {
-    //   await connection.rollback();
-    //   throw new Error("Dish not found");
-    // }
+    if (results.length === 0) {
+      await connection.rollback();
+      throw new Error("Dish not found");
+    }
 
-    // const imagePath = results[0].Image;
+    const imagePath = results[0].Image;
 
     // Then delete from database
     const deleteQuery = "DELETE FROM dishes WHERE DishID = ?";
     await connection.query(deleteQuery, [dishId]);
 
     // If DB delete successful, try to delete the file
-    // if (imagePath) {
-    //   try {
-    //     await fs.promises.unlink(imagePath);
-    //     logger.log("Successfully deleted local image file:", imagePath);
-    //   } catch (err) {
-    //     if (err.code !== "ENOENT") {
-    //       // If file exists but can't be deleted, rollback DB change
-    //       logger.error(
-    //         `Failed to delete image file ${imagePath}, rolling back DB deletion. Error: ${err.message}`
-    //       );
-    //       await connection.rollback();
-    //       throw new Error("Failed to delete associated image file");
-    //     }
-    //     // If file doesn't exist, that's fine, proceed to commit
-    //     logger.log(
-    //       `Image file ${imagePath} not found, proceeding with DB deletion.`
-    //     );
-    //   }
-    // }
+    if (imagePath) {
+      try {
+        await fs.promises.unlink(imagePath);
+        logger.log("Successfully deleted local image file:", imagePath);
+      } catch (err) {
+        if (err.code !== "ENOENT") {
+          // If file exists but can't be deleted, rollback DB change
+          logger.error(
+            `Failed to delete image file ${imagePath}, rolling back DB deletion. Error: ${err.message}`
+          );
+          await connection.rollback();
+          throw new Error("Failed to delete associated image file");
+        }
+        // If file doesn't exist, that's fine, proceed to commit
+        logger.log(
+          `Image file ${imagePath} not found, proceeding with DB deletion.`
+        );
+      }
+    }
 
     await connection.commit();
     return true;

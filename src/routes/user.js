@@ -87,6 +87,7 @@ const userController = require("../controllers/userController");
  */
 router.get(
   "/",
+  express.json(),
   authenticateToken,
   authorizeRoles("admin"),
   userController.getAllUsers
@@ -119,7 +120,7 @@ router.get(
  *       500:
  *         description: Internal Server Error
  */
-router.get("/:id", authenticateToken, userController.getUserById);
+router.get("/:id", express.json(), authenticateToken, userController.getUserById);
 
 /**
  * @swagger
@@ -163,7 +164,7 @@ router.get("/:id", authenticateToken, userController.getUserById);
  *       500:
  *         description: Internal Server Error
  */
-router.post("/", userController.createUser);
+router.post("/", express.json(), userController.createUser);
 
 /**
  * @swagger
@@ -191,6 +192,7 @@ router.post("/", userController.createUser);
  */
 router.delete(
   "/:id",
+  express.json(),
   authenticateToken,
   ensureOwnerOrAdmin,
   userController.deleteUser
@@ -241,6 +243,7 @@ router.delete(
  */
 router.put(
   "/:id",
+  express.json(),
   authenticateToken,
   ensureOwnerOrAdmin,
   userController.updateUser

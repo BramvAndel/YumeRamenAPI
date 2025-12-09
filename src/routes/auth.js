@@ -62,7 +62,7 @@ const { authLimiter } = require("../middleware/rateLimiter");
  *       500:
  *         description: Internal server error
  */
-router.post("/login", authLimiter, authController.login);
+router.post("/login", express.json(), authLimiter, authController.login);
 
 /**
  * @swagger
@@ -99,7 +99,7 @@ router.post("/login", authLimiter, authController.login);
  *       403:
  *         description: Invalid or revoked refresh token
  */
-router.post("/refresh", authController.refreshToken);
+router.post("/refresh", express.json(), authController.refreshToken);
 
 /**
  * @swagger
@@ -131,6 +131,6 @@ router.post("/refresh", authController.refreshToken);
  *       500:
  *         description: Internal server error
  */
-router.post("/logout", authController.logout);
+router.post("/logout", express.json(), authController.logout);
 
 module.exports = router;

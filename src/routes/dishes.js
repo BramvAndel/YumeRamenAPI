@@ -65,7 +65,7 @@ const authorizeRoles = require("../middleware/roleMiddleware");
  *       500:
  *         description: Internal Server Error
  */
-router.get("/", dishesController.getAllDishes);
+router.get("/", express.json(), dishesController.getAllDishes);
 
 /**
  * @swagger
@@ -92,7 +92,7 @@ router.get("/", dishesController.getAllDishes);
  *       500:
  *         description: Internal Server Error
  */
-router.get("/:id", dishesController.getDishById);
+router.get("/:id", express.json(), dishesController.getDishById);
 
 /**
  * @swagger
@@ -138,9 +138,9 @@ router.get("/:id", dishesController.getDishById);
  */
 router.post(
   "/",
+  upload.single("image"),
   authenticateToken,
   authorizeRoles("admin"),
-  // upload.single("image"),
   dishesController.createDish
 );
 
@@ -189,7 +189,7 @@ router.put(
   "/:id",
   authenticateToken,
   authorizeRoles("admin"),
-  // upload.single("image"),
+  upload.single("image"),
   dishesController.updateDish
 );
 
@@ -220,7 +220,8 @@ router.put(
 router.delete(
   "/:id",
   authenticateToken,
-  authorizeRoles("admin"),
+  authorizeRoles("admin"), 
+  express.json(),
   dishesController.deleteDish
 );
 

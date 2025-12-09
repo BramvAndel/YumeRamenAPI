@@ -57,7 +57,7 @@ const corsOptions = {
 // Usage in your app.js:
 app.use(cors(corsOptions));
 
-app.use(express.json());
+// app.use(express.json());
 app.use(cookieParser());
 
 const prefix = `/api/v1`;
@@ -131,8 +131,8 @@ app.get(`${prefix}/health`, async (req, res) => {
   });
 });
 
-app.use(`${prefix}/orders`, orderRoutes);
 app.use(`${prefix}/dishes`, dishesRoutes);
+app.use(`${prefix}/orders`, orderRoutes);
 app.use(`${prefix}/users`, userRoutes);
 app.use(`${prefix}/auth`, authRoutes);
 
