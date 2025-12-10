@@ -1,6 +1,6 @@
 const appV1 = require("./src/v1/app");
-const { connectDb } = require("./src/db");
-const logger = require("./src/utils/logger");
+const { connectDb } = require("./src/v1/db");
+const logger = require("./src/common/logger");
 const config = require("./config/config");
 const { initWebSocket } = require("./src/websocket");
 const http = require("http");

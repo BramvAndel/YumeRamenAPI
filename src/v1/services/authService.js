@@ -1,7 +1,7 @@
 const { getConnection } = require("../db");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const config = require("../../config/config");
+const config = require("../../../config/config");
 const { isValidEmail } = require("../utils/validation");
 
 /**

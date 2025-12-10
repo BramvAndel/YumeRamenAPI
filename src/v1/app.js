@@ -100,7 +100,7 @@ app.use("/uploads", (req, res, next) => {
   next();
 });
 
-app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
+app.use("/uploads", express.static(path.join(__dirname, "../../uploads")));
 
 // Health Check Endpoint
 const startTime = Date.now();

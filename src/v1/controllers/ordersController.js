@@ -1,6 +1,6 @@
 const logger = require("../../common/logger");
 const ordersService = require("../services/ordersService");
-const { emitOrderStatusUpdate, emitNewOrder } = require("../websocket");
+const { emitOrderStatusUpdate, emitNewOrder } = require("../../websocket");
 
 /**
  * Retrieves all orders with their associated items and dish details

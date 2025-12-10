@@ -1,7 +1,7 @@
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
-const config = require("../../config/config");
+const config = require("../../../config/config");
 
 // Ensure uploads directory exists
 const uploadDir = "uploads";
