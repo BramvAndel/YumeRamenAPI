@@ -1,6 +1,6 @@
 const mysql = require("mysql2/promise");
-const logger = require("./utils/logger");
-const config = require("../config/config");
+const logger = require("../common/logger");
+const config = require("../../config/config");
 
 let pool;
 

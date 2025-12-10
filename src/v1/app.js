@@ -9,10 +9,10 @@ const userRoutes = require("./routes/user");
 const authRoutes = require("./routes/auth");
 const swaggerUi = require("swagger-ui-express");
 const swaggerJsdoc = require("swagger-jsdoc");
-const logger = require("./utils/logger");
+const logger = require("../common/logger");
 const { apiLimiter } = require("./middleware/rateLimiter");
 const errorHandler = require("./middleware/errorHandler");
-const config = require("../config/config");
+const config = require("../../config/config");
 const helmet = require("helmet");
 const { getConnection } = require("./db");
 

@@ -1,6 +1,6 @@
 const jwt = require("jsonwebtoken");
 const config = require("../../config/config");
-const logger = require("../utils/logger");
+const logger = require("../../common/logger");
 
 /**
  * Middleware to authenticate requests using JWT token from HTTP-only cookies

@@ -1,4 +1,4 @@
-const logger = require("../utils/logger");
+const logger = require("../../common/logger");
 const ordersService = require("../services/ordersService");
 const { emitOrderStatusUpdate, emitNewOrder } = require("../websocket");
 

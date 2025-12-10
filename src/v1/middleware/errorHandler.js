@@ -1,4 +1,4 @@
-const logger = require("../utils/logger");
+const logger = require("../../common/logger");
 
 /**
  * Global error handling middleware for Express

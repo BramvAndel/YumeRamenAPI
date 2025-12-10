@@ -1,4 +1,4 @@
-const logger = require("../utils/logger");
+const logger = require("../../common/logger");
 const config = require("../../config/config");
 const authService = require("../services/authService");
 

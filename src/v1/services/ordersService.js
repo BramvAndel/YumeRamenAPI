@@ -1,5 +1,5 @@
 const { getConnection } = require("../db");
-const logger = require("../utils/logger");
+const logger = require("../../common/logger");
 const { isValidQuantity } = require("../utils/validation");
 
 /**

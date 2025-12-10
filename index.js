@@ -1,4 +1,4 @@
-const app = require("./src/app");
+const appV1 = require("./src/v1/app");
 const { connectDb } = require("./src/db");
 const logger = require("./src/utils/logger");
 const config = require("./config/config");
@@ -11,7 +11,8 @@ const PORT = config.port;
 connectDb()
   .then(() => {
     // Start Server only after database connection is established
-    const server = http.createServer(app);
+    const server = http.createServer(appV1);
+
     // Initialize WebSocket server
     initWebSocket(server);
     server.listen(PORT, () => {
