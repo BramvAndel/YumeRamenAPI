@@ -1,7 +1,6 @@
 const express = require("express");
 const router = express.Router();
 const authenticateToken = require("../middleware/authMiddleware");
-const ensureOwnerOrAdmin = require("../middleware/ownerMiddleware");
 const ordersController = require("../controllers/ordersController");
 const authorizeRoles = require("../middleware/roleMiddleware");
 
@@ -96,7 +95,7 @@ const authorizeRoles = require("../middleware/roleMiddleware");
  *       500:
  *         description: Internal Server Error
  */
-router.get("/", express.json(), authenticateToken, ensureOwnerOrAdmin, ordersController.getAllOrders);
+router.get("/", express.json(), authenticateToken, ordersController.getAllOrders);
 
 /**
  * @swagger
@@ -125,7 +124,7 @@ router.get("/", express.json(), authenticateToken, ensureOwnerOrAdmin, ordersCon
  *       500:
  *         description: Internal Server Error
  */
-router.get("/:id", express.json(), authenticateToken, ensureOwnerOrAdmin, ordersController.getOrderById);
+router.get("/:id", express.json(), authenticateToken, ordersController.getOrderById);
 
 /**
  * @swagger

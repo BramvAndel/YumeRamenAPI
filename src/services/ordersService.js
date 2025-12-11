@@ -11,7 +11,47 @@ const { isValidQuantity } = require("../utils/validation");
  * @async
  * @returns {Promise<Array>} Array of order objects with nested items
  */
-const getAllOrders = async () => {
+const getAllOrders = async (userId) => {
+  const connection = await getConnection();
+  try {
+    const query = `
+      SELECT o.*, oi.dishID, oi.aantal, d.Name as DishName, d.Price as DishPrice
+      FROM orders o
+      LEFT JOIN order_items oi ON o.OrderID = oi.orderID
+      LEFT JOIN dishes d ON oi.dishID = d.DishID
+      WHERE o.UserID = ?
+    `;
+
+    const [results] = await connection.query(query, [userId]);
+
+    const ordersMap = new Map();
+
+    results.forEach((row) => {
+      if (!ordersMap.has(row.OrderID)) {
+        const { dishID, aantal, DishName, DishPrice, ...orderData } = row;
+        ordersMap.set(row.OrderID, {
+          ...orderData,
+          items: [],
+        });
+      }
+
+      if (row.dishID) {
+        ordersMap.get(row.OrderID).items.push({
+          dishID: row.dishID,
+          quantity: row.aantal,
+          name: row.DishName,
+          price: row.DishPrice,
+        });
+      }
+    });
+
+    return Array.from(ordersMap.values());
+  } finally {
+    await connection.release();
+  }
+};
+
+const getAllOrdersAdmin = async () => {
   const connection = await getConnection();
   try {
     const query = `
@@ -50,17 +90,18 @@ const getAllOrders = async () => {
   }
 };
 
+
 /**
  * Retrieves a single order by ID with its items
  * @async
  * @param {number} orderId - Order ID
  * @returns {Promise<Object|null>} Order object with items or null if not found
  */
-const getOrderById = async (orderId) => {
+const getOrderById = async (orderId, userId) => {
   const connection = await getConnection();
   try {
-    const query = "SELECT * FROM orders WHERE OrderID = ?";
-    const [results] = await connection.query(query, [orderId]);
+    const query = "SELECT * FROM orders WHERE OrderID = ? AND UserID = ?";
+    const [results] = await connection.query(query, [orderId, userId]);
 
     if (results.length === 0) {
       return null;
@@ -84,6 +125,35 @@ const getOrderById = async (orderId) => {
     await connection.release();
   }
 };
+
+const getOrderByIdAdmin = async (orderId) => {
+  const connection = await getConnection();
+  try {
+    const query = "SELECT * FROM orders WHERE OrderID = ?";
+    const [results] = await connection.query(query, [orderId]);
+    if (results.length === 0) {
+      return null;
+    }
+
+    const order = results[0];
+
+    // Fetch items for this order
+    const itemsQuery = `
+      SELECT oi.dishID, oi.aantal, d.Name, d.Price 
+      FROM order_items oi
+      JOIN dishes d ON oi.dishID = d.DishID
+      WHERE oi.orderID = ?
+    `;
+
+    const [items] = await connection.query(itemsQuery, [orderId]);
+    order.items = items;
+
+    return order;
+  } finally {
+    await connection.release();
+  }
+};
+
 
 /**
  * Creates a new order for a user
@@ -273,7 +343,9 @@ const deleteOrder = async (orderId) => {
 
 module.exports = {
   getAllOrders,
+  getAllOrdersAdmin,
   getOrderById,
+  getOrderByIdAdmin,
   createOrder,
   updateOrder,
   deleteOrder,

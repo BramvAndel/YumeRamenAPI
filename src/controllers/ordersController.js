@@ -15,8 +15,19 @@ const { emitOrderStatusUpdate, emitNewOrder } = require("../websocket");
  */
 const getAllOrders = async (req, res, next) => {
   try {
+
+    const isAdmin = req.user.role === "admin";
+    const userId = req.user.userId;
+
+    let orders;
+    
+    if (!isAdmin) {
+      orders = await ordersService.getAllOrders(userId);
+    } else {
+      orders = await ordersService.getAllOrdersAdmin();
+    }
+
     logger.log("Get all orders endpoint called");
-    const orders = await ordersService.getAllOrders();
     res.json(orders);
   } catch (error) {
     next(error);
@@ -41,7 +52,13 @@ const getOrderById = async (req, res, next) => {
     const id = req.params.id;
     logger.log(`Get order by ID endpoint called for ID: ${id}`);
 
-    const order = await ordersService.getOrderById(id);
+    const userId = req.user.userId;
+    const userRole = req.user.role;
+
+    // Admins can access any order, users can only access their own orders
+    const order = userRole === "admin"
+      ? await ordersService.getOrderByIdAdmin(id)
+      : await ordersService.getOrderById(id, userId);
 
     if (!order) {
       return res.status(404).json({ error: "Order not found" });
