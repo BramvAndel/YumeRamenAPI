@@ -114,14 +114,14 @@ const createUser = async (userData) => {
 const deleteUser = async (userId) => {
   const connection = await getConnection();
   try {
-    // Check for related orders
-    const checkOrdersQuery =
-      "SELECT COUNT(*) as count FROM orders WHERE UserID = ?";
-    const [orderCheck] = await connection.query(checkOrdersQuery, [userId]);
+    // Check for active (non-completed) orders
+    const checkActiveOrdersQuery =
+      "SELECT COUNT(*) as count FROM orders WHERE UserID = ? AND Status != 'completed'";
+    const [orderCheck] = await connection.query(checkActiveOrdersQuery, [userId]);
 
     if (orderCheck[0].count > 0) {
       throw new Error(
-        "Cannot delete user with existing orders. Please delete orders first."
+        "Cannot delete user with active orders. Please complete or delete active orders first."
       );
     }
 
