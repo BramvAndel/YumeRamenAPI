@@ -1,8 +1,9 @@
 const express = require("express");
 const router = express.Router();
 const authenticateToken = require("../middleware/authMiddleware");
-
+const ensureOwnerOrAdmin = require("../middleware/ownerMiddleware");
 const ordersController = require("../controllers/ordersController");
+const authorizeRoles = require("../middleware/roleMiddleware");
 
 /**
  * @swagger
@@ -95,7 +96,7 @@ const ordersController = require("../controllers/ordersController");
  *       500:
  *         description: Internal Server Error
  */
-router.get("/", express.json(), authenticateToken, ordersController.getAllOrders);
+router.get("/", express.json(), authenticateToken, ensureOwnerOrAdmin, ordersController.getAllOrders);
 
 /**
  * @swagger
@@ -124,7 +125,7 @@ router.get("/", express.json(), authenticateToken, ordersController.getAllOrders
  *       500:
  *         description: Internal Server Error
  */
-router.get("/:id", express.json(), authenticateToken, ordersController.getOrderById);
+router.get("/:id", express.json(), authenticateToken, ensureOwnerOrAdmin, ordersController.getOrderById);
 
 /**
  * @swagger
@@ -214,7 +215,7 @@ router.post("/", express.json(), authenticateToken, ordersController.createOrder
  *       500:
  *         description: Internal Server Error
  */
-router.put("/:id", express.json(), authenticateToken, ordersController.updateOrder);
+router.put("/:id", express.json(), authenticateToken, authorizeRoles("admin"), ordersController.updateOrder);
 
 /**
  * @swagger
@@ -239,7 +240,7 @@ router.put("/:id", express.json(), authenticateToken, ordersController.updateOrd
  *       500:
  *         description: Internal Server Error
  */
-router.delete("/:id", express.json(), authenticateToken, ordersController.deleteOrder);
+router.delete("/:id", express.json(), authenticateToken, authorizeRoles("admin"), ordersController.deleteOrder);
 
 module.exports = router;
 
